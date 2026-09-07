@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "benchmark-result bootstrap v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "status",
+    "accepted",
+    "formal_status",
+    "native_incremental_synthesis",
+    "physical_eco"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "accepted": {
+      "const": false
+    },
+    "formal_status": {
+      "const": "NOT_RUN"
+    },
+    "native_incremental_synthesis": {
+      "const": false
+    },
+    "physical_eco": {
+      "const": false
+    },
+    "status": {
+      "enum": [
+        "RUNNING",
+        "FLOW_COMPLETED_UNVERIFIED",
+        "FLOW_FAILED",
+        "INFRASTRUCTURE_ERROR_MISSING_OR_AMBIGUOUS_AUDIT",
+        "INTERRUPTED_OR_TIMEOUT"
+      ]
+    },
+    "wall_seconds": {
+      "type": "number",
+      "minimum": 0
+    },
+    "ppa": {
+      "type": "null"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+# Runtime data and independent development checkouts are never source artifacts.
+.state/
+.runs/
+.cache/
+.venv/
+result
+result-*
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+components/yosys/
+components/librelane/
+components/yosys-stock/
+# Export creates the gitlink explicitly; this ignore rule does not untrack it.
+.env
+*.pem
+*.key

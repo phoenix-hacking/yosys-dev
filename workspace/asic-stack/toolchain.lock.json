@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "status": "source-pinned; build-and-flow-validation-pending",
+  "system": "x86_64-linux",
+  "nix_minimum": "2.27.0",
+  "sources": {
+    "librelane": {
+      "repository": "librelane/librelane",
+      "revision": "f24e0ea5db2260719e9a0c7d51d07db74a87fa23",
+      "release": "3.0.14",
+      "upstream_lock_blob": "7852bd609d45972bf7fad246b3073c8d75349f40"
+    },
+    "yosys_candidate": {
+      "repository": "phoenix-hacking/yosys-dev",
+      "revision": "43bbfbf71cba0435ebf806e9be8a888027c2903d",
+      "submodules": true
+    },
+    "yosys_stock": {
+      "repository": "YosysHQ/yosys",
+      "revision": "435977e97008578a4532da60e70f75b5e88d076d",
+      "submodules": true
+    }
+  },
+  "inherited": {
+    "nix_eda_revision": "8f990fb77529c09e540e453cd836af9930ec58db",
+    "nixpkgs_revision": "b3aad468604d3e488d627c0b43984eb60e75e782"
+  },
+  "initial_envelope": {
+    "language": "Verilog with explicitly tested SystemVerilog subset",
+    "external_yosys_plugins": [],
+    "native_incremental_synthesis": false,
+    "physical_eco": false,
+    "platform": "sky130hd"
+  }
+}

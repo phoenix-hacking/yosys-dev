@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-07",
+  "scope": "offline bootstrap validation only",
+  "environment": {
+    "python": "3.13.5",
+    "git": "/usr/bin/git",
+    "nix": null,
+    "yosys": null,
+    "openroad": null,
+    "librelane": null
+  },
+  "commands": [
+    {
+      "command": "python3 scripts/stack.py check",
+      "status": "PASS"
+    },
+    {
+      "command": "python3 -m compileall -q scripts integrations tests",
+      "status": "PASS"
+    },
+    {
+      "command": "python3 -m unittest discover -s tests -v",
+      "status": "PASS_WITH_EXPLICIT_SKIPS",
+      "tests_run": 35,
+      "passed": 33,
+      "skipped": 2,
+      "failed": 0
+    }
+  ],
+  "skips": [
+    "Real LibreLane flow registration",
+    "Real LibreLane synthesis-step substitution"
+  ],
+  "verified_features": [
+    "immutable source-lock validation",
+    "wrong compiler/binding rejection helpers",
+    "updated-B RTL fixture selection",
+    "PDK content-change and symlink-cycle checks",
+    "safe checksummed source export",
+    "independent Git index and pinned Yosys gitlink"
+  ],
+  "not_run": [
+    "Nix resolution/evaluation/build",
+    "compiler build/upstream tests",
+    "real LibreLane or embedded Pyosys execution",
+    "PDK provisioning/qualification",
+    "ASIC synthesis",
+    "formal equivalence",
+    "place and route",
+    "physical checks/PPA"
+  ],
+  "remote_repository_created": false,
+  "compiler_features_implemented": false
+}

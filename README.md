@@ -1,304 +1,109 @@
-yosys – Yosys Open SYnthesis Suite
-===================================
+# Phoenix ASIC Stack
 
-This is a framework for RTL synthesis tools. It currently has
-extensive Verilog-2005 support and provides a basic set of
-synthesis algorithms for various application domains.
+This repository branch is organized as the **top-level ASIC implementation stack**. LibreLane is the flow/orchestration layer, and the modified Yosys compiler lives underneath it at `components/yosys` as a pinned component.
 
-Yosys is using [sv-elab](https://github.com/povik/sv-elab) and [slang](https://github.com/MikePopoloski/slang) libraries to provide comprehensive SystemVerilog support.
-It supports an (informally defined) synthesizable subset of SystemVerilog in version IEEE 1800-2017 or IEEE 1800-2023.
+The architecture is intentionally stack-first:
 
-Yosys can be adapted to perform any synthesis job by combining
-the existing passes (algorithms) using synthesis scripts and
-adding additional passes as needed by extending the yosys C++
-code base.
-
-Yosys is free software licensed under the ISC license (a GPL
-compatible license that is similar in terms to the MIT license
-or the 2-clause BSD license).
-
-Third-party software distributed alongside this software
-is licensed under compatible licenses.
-Please refer to `abc` and `libs` subdirectories for their license terms.
-
-
-Web Site and Other Resources
-============================
-
-More information and documentation can be found on the Yosys web site:
-- https://yosyshq.net/yosys/
-
-If you have any Yosys-related questions, please post them on the Discourse group:
-- https://yosyshq.discourse.group
-
-Documentation from this repository is automatically built and available on Read
-the Docs:
-- https://yosyshq.readthedocs.io/projects/yosys
-
-Users interested in formal verification might want to use the formal
-verification front-end for Yosys, SBY:
-- https://yosyshq.readthedocs.io/projects/sby/
-- https://github.com/YosysHQ/sby
-
-The Yosys blog has news and articles from users:
-- https://blog.yosyshq.com
-
-
-Installation
-============
-
-Yosys is part of the [Tabby CAD Suite](https://www.yosyshq.com/tabby-cad-datasheet) and the [OSS CAD Suite](https://github.com/YosysHQ/oss-cad-suite-build)! The easiest way to use yosys is to install the binary software suite, which contains all required dependencies and related tools.
-
-* [Contact YosysHQ](https://www.yosyshq.com/contact) for a [Tabby CAD Suite](https://www.yosyshq.com/tabby-cad-datasheet) Evaluation License and download link
-* OR go to https://github.com/YosysHQ/oss-cad-suite-build/releases to download the free OSS CAD Suite
-* Follow the [Install Instructions on GitHub](https://github.com/YosysHQ/oss-cad-suite-build#installation)
-
-Make sure to get a Tabby CAD Suite Evaluation License if you need features such as industry-grade SystemVerilog and VHDL parsers!
-
-For more information about the difference between Tabby CAD Suite and the OSS CAD Suite, please visit https://www.yosyshq.com/tabby-cad-datasheet
-
-Many Linux distributions also provide Yosys binaries, some more up to date than others. Check with your package manager!
-
-
-Building from Source
-====================
-
-For more details, and instructions for other platforms, check [building from
-source](https://yosyshq.readthedocs.io/projects/yosys/en/latest/getting_started/installation.html#building-from-source)
-on Read the Docs.
-
-When cloning Yosys, some required libraries are included as git submodules. Make
-sure to call e.g.
-
-	$ git clone https://github.com/YosysHQ/yosys.git
-	$ cd yosys
-	$ git submodule update --init
-
-A C++ compiler with C++20 support is required as well as some standard tools
-such as GNU Flex, GNU Bison (>=3.8), CMake (>=3.28), Make (or other CMake
-generator such as Ninja), and Python (>=3.11). Some additional tools: readline,
-libffi, Tcl and zlib; will be used if available but are optional. Graphviz and
-Xdot are used by the `show` command to display schematics.
-
-For example on Ubuntu Linux 22.04 LTS the following commands will install all
-prerequisites for building yosys:
-
-	$ sudo apt-get install gawk git make python3 lld bison clang flex \
-		libffi-dev libfl-dev libreadline-dev pkg-config tcl-dev zlib1g-dev \
-		graphviz xdot
-
-**NOTE**: By default, Ubuntu 22.04 LTS is limited to CMake 3.22 via `apt`. To
-install a newer version and meet the minimum required for building Yosys, use
-`sudo snap install cmake --classic`.
-
-CMake is used for build configuration, and requires a separate build directory:
-
-	$ cmake -B build .
-
-Once generated, available build variables can be inspected and modified with
-`ccmake` or opening the generated `build/CMakeCache.txt` file:
-
-	$ ccmake build              #..or..
-	$ vi build/CMakeCache.txt
-
-When setting one-off variables, CMake provides the `-D <var>=<value>` command
-line option. For example, disabling zlib support:
-
-	$ cmake -B build . -DYOSYS_WITHOUT_ZLIB=ON
-
-For a more persistent configuration, we recommend creating and using a
-`CMakeUserPresets.json` file in the root `yosys` directory. Below is an example
-file which enables ccache and sets the default compiler to clang when calling
-`cmake --preset clang`:
-
-```json
-{
-	"version": 1,
-	"configurePresets": [
-		{
-			"name": "default",
-			"binaryDir": "build",
-			"generator": "Unix Makefiles",
-			"cacheVariables": {
-				"CMAKE_C_COMPILER": "clang",
-				"CMAKE_CXX_COMPILER": "clang++",
-				"YOSYS_COMPILER_LAUNCHER": "ccache"
-			}
-		}
-	]
-}
+```text
+asic-stack/
+├── README.md
+├── SOFTWARE_REQUIREMENTS.md
+├── STACK_EXECUTION_PLAN.md
+├── STACK_PROGRESS.md
+├── toolchain.lock.json
+├── flake.nix
+├── nix/
+├── integrations/
+│   └── librelane/
+├── benchmarks/
+├── platforms/
+├── schemas/
+├── scripts/
+├── tests/
+├── evidence/
+└── components/
+    └── yosys/      # pinned Yosys fork
 ```
 
-Once generated, the build system can be run as follows:
+## Component boundary
 
-	$ cmake --build build       #..or..
-	$ cd build
-	$ cmake --build .
+`components/yosys` is where synthesis-engine development happens: incremental compilation, artifact reuse, dependency/invalidation tracking, maintained analyses, ASIC mapping, timing/physical-aware synthesis decisions, proof obligations, and synthesis QoR work.
 
-To quickly install Yosys with the default settings:
+The top level owns the complete implementation environment: LibreLane orchestration, toolchain locking, PDK/platform selection, OpenSTA/OpenROAD integration, benchmark/edit-replay execution, end-to-end resource and PPA measurement, and release evidence.
 
-	$ cmake -B build . -DCMAKE_BUILD_TYPE=Release
-	$ cmake --build build --config Release --parallel $(nproc)
-	$ sudo cmake --install build --strip
+LibreLane/OpenROAD are not substitutes for the Yosys work. They are the downstream implementation and validation environment.
 
-Tests are located in the tests subdirectory and can be executed using the `test`
-target. Note that you need gawk, a recent version of iverilog, and gtest.
-Execute tests via:
+## Pinned starting point
 
-	$ cmake --build build --target test --parallel $(nproc)
+- LibreLane: `3.0.14`, commit `f24e0ea5db2260719e9a0c7d51d07db74a87fa23`
+- Candidate Yosys component: `phoenix-hacking/yosys-dev` at `43bbfbf71cba0435ebf806e9be8a888027c2903d`
+- Stock Yosys control: upstream commit `435977e97008578a4532da60e70f75b5e88d076d`
 
+See [SOFTWARE_REQUIREMENTS.md](SOFTWARE_REQUIREMENTS.md) for the full stack contract and [STACK_EXECUTION_PLAN.md](STACK_EXECUTION_PLAN.md) for bring-up and acceptance gates.
 
-Getting Started
-===============
+## Initial checkout
 
-Yosys can be used with the interactive command shell, with
-synthesis scripts or with command line arguments. Let's perform
-a simple synthesis job using the interactive command shell:
+```sh
+git clone <this repository>
+cd <repository>
+git submodule update --init --recursive
+python3 scripts/stack.py check
+```
 
-	$ ./build/yosys
-	yosys>
+The candidate component is pinned. Do not advance `components/yosys`, the source lock, or synthesis acceptance thresholds independently.
 
-the command ``help`` can be used to print a list of all available
-commands and ``help <command>`` to print details on the specified command:
+## Build profiles
 
-	yosys> help help
+The stack keeps three different controls:
 
-reading and elaborating the design using the Verilog frontend:
+- `reference`: LibreLane's packaged reference environment.
+- `stock`: pinned upstream Yosys built through the comparison packaging path.
+- `candidate`: this project's Yosys fork.
 
-	yosys> read -sv tests/simple/fiedler-cooley.v
-	yosys> hierarchy -top up3down5
+On the supported Linux host, resolve the real Nix closure before claiming reproducibility:
 
-writing the design to the console in the RTLIL format used by Yosys
-internally:
+```sh
+python3 scripts/stack.py resolve
+nix develop .#reference
+python3 scripts/stack.py doctor --profile reference
+```
 
-	yosys> write_rtlil
+Repeat separately for `stock` and `candidate`.
 
-convert processes (``always`` blocks) to netlist elements and perform
-some simple optimizations:
+## Flow ownership
 
-	yosys> proc; opt
+```text
+RTL / constraints / macros
+        ↓
+components/yosys
+        ↓
+mapped netlist + synthesis metadata
+        ↓
+LibreLane
+        ↓
+OpenSTA / OpenROAD / physical verification tools
+        ↓
+measured implementation evidence
+```
 
-display design netlist using ``xdot``:
+The target long-term feedback loop is:
 
-	yosys> show
+```text
+Yosys candidate generation
+        ↓
+OpenSTA/OpenROAD context
+        ↓
+Yosys candidate selection / local resynthesis
+        ↓
+LibreLane implementation and validation
+```
 
-the same thing using ``gv`` as postscript viewer:
+## Current status
 
-	yosys> show -format ps -viewer gv
+This is still a bootstrap, not a validated RTL-to-GDS release. Offline checks passed in the bootstrap work, but Nix builds, live Pyosys/LibreLane integration, PDK qualification, formal equivalence, placement/routing, and PPA acceptance remain explicit gates in `STACK_PROGRESS.md`.
 
-translating netlist to gate logic and perform some simple optimizations:
+Native incremental synthesis and general RTL-to-routed ECO are not yet implemented.
 
-	yosys> techmap; opt
+## GitHub repository naming
 
-write design netlist to a new Verilog file:
-
-	yosys> write_verilog synth.v
-
-or using a simple synthesis script:
-
-	$ cat synth.ys
-	read -sv tests/simple/fiedler-cooley.v
-	hierarchy -top up3down5
-	proc; opt; techmap; opt
-	write_verilog synth.v
-
-	$ ./yosys synth.ys
-
-If ABC is enabled in the Yosys build configuration and a cell library is given
-in the liberty file ``mycells.lib``, the following synthesis script will
-synthesize for the given cell library:
-
-	# read design
-	read -sv tests/simple/fiedler-cooley.v
-	hierarchy -top up3down5
-
-	# the high-level stuff
-	proc; fsm; opt; memory; opt
-
-	# mapping to internal cell library
-	techmap; opt
-
-	# mapping flip-flops to mycells.lib
-	dfflibmap -liberty mycells.lib
-
-	# mapping logic to mycells.lib
-	abc -liberty mycells.lib
-
-	# cleanup
-	clean
-
-If you do not have a liberty file but want to test this synthesis script,
-you can use the file ``examples/cmos/cmos_cells.lib`` from the yosys sources
-as simple example.
-
-Liberty file downloads for and information about free and open ASIC standard
-cell libraries can be found here:
-
-- http://www.vlsitechnology.org/html/libraries.html
-- http://www.vlsitechnology.org/synopsys/vsclib013.lib
-
-The command ``synth`` provides a good default synthesis script (see
-``help synth``):
-
-	read -sv tests/simple/fiedler-cooley.v
-	synth -top up3down5
-
-	# mapping to target cells
-	dfflibmap -liberty mycells.lib
-	abc -liberty mycells.lib
-	clean
-
-The command ``prep`` provides a good default word-level synthesis script, as
-used in SMT-based formal verification.
-
-
-Additional information
-======================
-
-The ``read_verilog`` command, used by default when calling ``read`` with Verilog
-source input, does not perform syntax checking.  You should instead lint your
-source with another tool such as
-[Verilator](https://www.veripool.org/verilator/) first, e.g. by calling
-``verilator --lint-only``.
-
-
-Building the documentation
-==========================
-
-Note that there is no need to build the manual if you just want to read it.
-Simply visit https://yosys.readthedocs.io/en/latest/ instead.
-If you're offline, you can read the sources, replacing `.../en/latest`
-with `docs/source`.
-
-In addition to those packages listed above for building Yosys from source, the
-following are used for building the website:
-
-	$ sudo apt install pdf2svg faketime
-
-Or for MacOS, using homebrew:
-
-	$ brew install pdf2svg libfaketime
-
-PDFLaTeX, included with most LaTeX distributions, is also needed during the
-build process for the website.  Or, run the following:
-
-	$ sudo apt install texlive-latex-base texlive-latex-extra latexmk
-
-Or for MacOS, using homebrew:
-
-	$ brew install basictex
-	$ sudo tlmgr update --self
-	$ sudo tlmgr install collection-latexextra latexmk tex-gyre
-
-The Python package, Sphinx, is needed along with those listed in
-`docs/source/requirements.txt`:
-
-	$ pip install -U sphinx -r docs/source/requirements.txt
-
-DOCS (e.g.)
-
-	$ cmake --build build --target docs-html --parallel
-
-This will build/rebuild yosys as necessary before generating the website
-documentation from the yosys help commands.  To build for pdf instead of html,
-use the `docs-latexpdf` target.
+The tree is now stack-first. The active GitHub connector cannot create or rename repositories, so the remote may still display the historical `yosys-dev` repository name until an owner/admin renames it or publishes this branch as `phoenix-hacking/asic-stack`. The repository contents and component hierarchy no longer depend on the old root-level Yosys layout.

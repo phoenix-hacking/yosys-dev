@@ -1,78 +1,51 @@
+# GENERATED from toolchain.lock.json by scripts/stack.py render-flake.
+# Run `nix flake lock` before build acceptance; this is not a fabricated lockfile.
 {
-  description = "A Nix flake for the Yosys synthesis suite.";
-
+  description = "Phoenix ASIC workspace: LibreLane plus an independently maintained Yosys fork";
   inputs = {
-    # This requires Nix >= 2.27.0.
-    self.submodules = true;
-
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
+    librelane.url = "github:librelane/librelane/f24e0ea5db2260719e9a0c7d51d07db74a87fa23";
+    yosys-candidate = {
+      url = "git+https://github.com/phoenix-hacking/yosys-dev.git?rev=43bbfbf71cba0435ebf806e9be8a888027c2903d&submodules=1";
+      flake = false;
+    };
+    yosys-stock = {
+      url = "git+https://github.com/YosysHQ/yosys.git?rev=435977e97008578a4532da60e70f75b5e88d076d&submodules=1";
+      flake = false;
+    };
   };
-
-  outputs =
-    {
-      self,
-      nixpkgs,
-      flake-utils,
-    }:
-    flake-utils.lib.eachDefaultSystem (
-      system:
-      let
-        pkgs = import nixpkgs {
-          inherit system;
-
-          overlays = [
-            (final: prev: {
-              yosys = final.callPackage ./nix/pkgs/yosys.nix {
-                src = self;
-                rev = (self.shortRev or self.dirtyShortRev or "unknown");
-              };
-            })
-          ];
+  outputs = { self, librelane, yosys-candidate, yosys-stock }:
+    let
+      system = "x86_64-linux";
+      base = librelane.legacyPackages.${system};
+      lock = builtins.fromJSON (builtins.readFile ./toolchain.lock.json);
+      mk = profile: src: revision:
+        import ./nix/profile.nix {
+          inherit profile src revision librelane self lock base;
         };
-
-        yosys-clang = pkgs.yosys.override { stdenv = pkgs.clangStdenv; };
-
-        win32Pkgs = pkgs.callPackage ./nix/cross/win32.nix { };
-        win64Pkgs = pkgs.callPackage ./nix/cross/win64.nix { };
-
-        mkShell =
-          t:
-          pkgs.mkShell.override { stdenv = t.stdenv; } {
-            inputsFrom = [
-              t
-            ];
-
-            packages = with pkgs; [
-              llvmPackages.clang-tools
-            ];
-
-            shellHook = ''
-              DRIVER_ROOT="${t.stdenv.cc}/bin"
-              export CLANGD_FLAGS="--query-driver $DRIVER_ROOT/$CC,$DRIVER_ROOT/$CXX"
-            '';
-          };
-      in
-      {
-        formatter = pkgs.nixfmt-tree;
-
-        devShells = rec {
-          shell = mkShell yosys-clang;
-          shell-gcc = mkShell pkgs.yosys;
-          shell-win32 = mkShell win32Pkgs.yosys;
-          shell-win64 = mkShell win64Pkgs.yosys;
-
-          default = shell;
-        };
-
-        packages = rec {
-          yosys = yosys-clang;
-          yosys-gcc = pkgs.yosys;
-          yosys-win32 = win32Pkgs.yosys;
-          yosys-win64 = win64Pkgs.yosys;
-
-          default = yosys;
-        };
-      }
-    );
+      reference = mk "reference" null null;
+      stock = mk "stock" yosys-stock lock.sources.yosys_stock.revision;
+      candidate = mk "candidate" yosys-candidate lock.sources.yosys_candidate.revision;
+    in {
+      packages.${system} = {
+        reference = reference.runner;
+        stock = stock.runner;
+        candidate = candidate.runner;
+        default = reference.runner;
+      };
+      devShells.${system} = {
+        reference = reference.shell;
+        stock = stock.shell;
+        candidate = candidate.shell;
+        default = reference.shell;
+      };
+      checks.${system}.offline = base.runCommand "phoenix-offline-tests" {
+        nativeBuildInputs = [ base.python3 base.git ];
+      } ''
+        cp -R ${self}/. work
+        chmod -R u+w work
+        cd work
+        python3 -m unittest discover -s tests -v
+        touch $out
+      '';
+    };
 }

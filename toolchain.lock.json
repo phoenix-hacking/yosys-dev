@@ -1,6 +1,6 @@
 {
-  "schema_version": 1,
-  "status": "source-pinned; build-and-flow-validation-pending",
+  "schema_version": 2,
+  "status": "digital-source-pinned; analog-rf-tooling-catalogued; build-and-flow-validation-pending",
   "system": "x86_64-linux",
   "nix_minimum": "2.27.0",
   "sources": {
@@ -25,11 +25,69 @@
     "nix_eda_revision": "8f990fb77529c09e540e453cd836af9930ec58db",
     "nixpkgs_revision": "b3aad468604d3e488d627c0b43984eb60e75e782"
   },
+  "tooling_contract": {
+    "digital_required": [
+      "librelane",
+      "yosys",
+      "abc",
+      "opensta",
+      "openroad",
+      "klayout",
+      "magic",
+      "netgen",
+      "verilator",
+      "iverilog",
+      "eqy",
+      "sby",
+      "ciel"
+    ],
+    "analog_required": [
+      "xschem",
+      "ngspice",
+      "xyce",
+      "openvaf-reloaded",
+      "cace",
+      "klayout",
+      "magic",
+      "netgen",
+      "gdsfactory"
+    ],
+    "rf_required": [
+      "openems",
+      "palace",
+      "scikit-rf",
+      "gdsfactory"
+    ],
+    "optional": [
+      "qucs-s",
+      "gnucap",
+      "pygmid",
+      "gmsh",
+      "paraview"
+    ]
+  },
+  "platforms": {
+    "sky130a": {
+      "purpose": "digital RTL-to-GDS and analog compatibility bring-up",
+      "status": "provisioning-pending"
+    },
+    "ihp_sg13g2": {
+      "purpose": "analog/mixed/RF reference plus digital integration",
+      "status": "provisioning-pending"
+    },
+    "gf180mcu": {
+      "purpose": "secondary mixed-signal portability target",
+      "status": "future"
+    }
+  },
   "initial_envelope": {
     "language": "Verilog with explicitly tested SystemVerilog subset",
     "external_yosys_plugins": [],
     "native_incremental_synthesis": false,
     "physical_eco": false,
-    "platform": "sky130hd"
+    "digital_platform": "sky130hd",
+    "analog_platform": "sky130a",
+    "rf_platform": "ihp_sg13g2",
+    "full_chip_ams_cosimulation": false
   }
 }

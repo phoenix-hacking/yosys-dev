@@ -1,7 +1,7 @@
 # GENERATED from toolchain.lock.json by scripts/stack.py render-flake.
 # Run `nix flake lock` before build acceptance; this is not a fabricated lockfile.
 {
-  description = "Phoenix ASIC workspace: LibreLane plus an independently maintained Yosys fork";
+  description = "asic-flow: digital, analog, RF/EM and mixed-signal ASIC development";
   inputs = {
     librelane.url = "github:@LIBRELANE_REPO@/@LIBRELANE_REV@";
     yosys-candidate = {
@@ -38,12 +38,15 @@
         candidate = candidate.shell;
         default = reference.shell;
       };
-      checks.${system}.offline = base.runCommand "phoenix-offline-tests" {
+      checks.${system}.offline =
+        assert (import ./nix/tests/tool-discovery.nix).status == "PASS";
+        base.runCommand "phoenix-offline-tests" {
         nativeBuildInputs = [ base.python3 base.git ];
       } ''
         cp -R ${self}/. work
         chmod -R u+w work
         cd work
+        python3 scripts/stack.py check
         python3 -m unittest discover -s tests -v
         touch $out
       '';

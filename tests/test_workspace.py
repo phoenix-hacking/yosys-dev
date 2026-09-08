@@ -40,7 +40,7 @@ class ConfigurationTests(unittest.TestCase):
     def test_reject_false_incremental_claim(self):
         value = copy.deepcopy(stack.load_lock())
         value["initial_envelope"]["native_incremental_synthesis"] = True
-        with patch.object(stack, "read_json", return_value=value), self.assertRaises(ValueError):
+        with patch.object(stack, "read_json", side_effect=[value, stack.read_json(ROOT / "nix/tool-catalog.json")]), self.assertRaisesRegex(ValueError, "incremental synthesis"):
             stack.load_lock()
 
     def test_updated_rtl_is_selected(self):
@@ -181,6 +181,7 @@ class ExportTests(unittest.TestCase):
             self.assertTrue(result.startswith("160000 " + expected))
             self.assertFalse((dest / ".runs").exists())
             self.assertTrue((dest / ".gitmodules").is_file())
+            self.assertFalse(stack.check_static(dest)["eda_validated"])
 
     def test_existing_destination_rejected(self):
         with tempfile.TemporaryDirectory() as t, self.assertRaises(ValueError):

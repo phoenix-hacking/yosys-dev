@@ -32,7 +32,7 @@ LibreLane owns flow ordering, configuration/state handoff, step execution, resul
 Candidate compiler:
 
 - path: `components/yosys`
-- repository: `phoenix-hacking/yosys-dev`
+- historical source URL: `phoenix-hacking/yosys-dev` (the same repository being renamed to `asic-flow`; compiler-tree history is preserved)
 - pinned bootstrap commit: `43bbfbf71cba0435ebf806e9be8a888027c2903d`
 
 Stock comparison compiler:
@@ -167,7 +167,12 @@ Digital profiles remain:
 
 Analog and RF runs require analogous resolved-toolchain manifests containing simulator/model compiler/layout/LVS/extraction/characterization/EM/PDK identities and configuration digests.
 
-The Nix shell may expose tools opportunistically from the inherited package set, but a release lane is qualified only when **all required tools for that lane are present and its audit reports no missing required packages**.
+The Nix shell discovers required native and Python packages from the inherited
+package set. `nix/tool-catalog.json` specifies their attributes, executables and
+modules. The package audit exits nonzero for missing/unusable requirements and
+checks that Python imports belong to the selected package. Passing the audit
+establishes availability only; a release lane still requires its complete PDK,
+simulation, verification and representative flow gates.
 
 ## 11. Validation hierarchy
 

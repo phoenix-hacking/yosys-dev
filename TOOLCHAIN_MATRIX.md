@@ -11,6 +11,16 @@ Status vocabulary:
 - **pending PDK** — binary may exist, but the required process collateral has not been qualified.
 - **qualified** — tool identity, invocation, PDK collateral and representative acceptance tests have passed.
 
+Executable package mappings are in `nix/tool-catalog.json`. The Nix resolver
+uses the required lists in `toolchain.lock.json`, handles native/Python packages
+separately and reports availability by lane. `phoenix-analog-tool-audit --lane all`
+exits nonzero for missing executables, imports or package identity. The source
+lock uses schema 2; runtime toolchain identities retain compatible schema 1.
+
+The pinned nix-eda overlay (`8f990fb...`) exposes GDSFactory through
+`python3.pkgs.gdsfactory` and does not explicitly add OpenVAF Reloaded. Current
+upstream OpenVAF packaging is not evidence that this older profile contains it.
+
 ## Digital ASIC lane
 
 | Capability | Tool | Policy | Current integration state | Release acceptance |
@@ -34,7 +44,7 @@ Status vocabulary:
 | Alternate schematic/simulation UI | Qucs-S | optional | not yet packaged in project profile | only promoted if PDK integration is reproducible |
 | Baseline circuit simulation | ngspice | required/reference | available in nix-eda ecosystem; project qualification pending | DC/AC/transient/noise reference fixtures reproduce |
 | Large/parallel circuit simulation | Xyce | required on Linux | available in nix-eda ecosystem; project qualification pending | same selected device/model fixtures compare within defined tolerances |
-| Verilog-A compact-model compilation | OpenVAF Reloaded / OSDI | required when PDK needs it | nix-eda provides OpenVAF Reloaded; project qualification pending | PDK Verilog-A model compiles and simulator loads it |
+| Verilog-A compact-model compilation | OpenVAF Reloaded / OSDI | required for initial analog envelope | exact pinned package availability/build and PDK qualification pending | PDK Verilog-A model compiles and simulator loads it |
 | Alternate model path | ADMS/Xyce plugin flow | conditional | PDK/tool dependent | required only where selected PDK documents it |
 | Analog characterization/regression | CACE | required/reference | source selected; project packaging pending | corners/spec limits + Monte Carlo/mismatch where models permit |
 | Custom layout | KLayout and Magic | required | already digital dependencies; analog tech qualification pending | layout edit/import/export + PDK DRC smoke |
@@ -50,7 +60,7 @@ Status vocabulary:
 |---|---|---|---|---|
 | Planar/full-wave EM | openEMS | required RF capability | packaging + PDK integration pending | passive fixture produces reproducible S-parameters |
 | 3D FEM electromagnetics | Palace | required RF capability | packaging + PDK integration pending | reference inductor/transformer/balun fixture converges and exports S-parameters |
-| S-parameter/network analysis | scikit-rf | required support capability | packaging pending | Touchstone ingest, de-embedding/network checks pass |
+| S-parameter/network analysis | scikit-rf | required support capability | pinned nixpkgs provides 1.8.0; Python discovery wired; build/import/flow qualification pending | Touchstone ingest, de-embedding/network checks pass |
 | Parametric RF geometry | GDSFactory | required support capability | package pending | geometry is deterministic and DRC-clean under reference PDK |
 | Meshing/visualization helpers | Gmsh/ParaView or solver-supported equivalents | optional | pending | promoted only when required by accepted solver path |
 

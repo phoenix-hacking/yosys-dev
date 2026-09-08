@@ -28,3 +28,10 @@ These immutable links support the packaging and adapter decisions in this change
    wrapped-arithmetic features are references, not assumed compatible APIs.
 7. Keep source pins, resolved build closure, runtime identity, PDK inventory and
    formal/physical evidence separate; no one record proves all five.
+
+## Preparation review, 2026-09-08
+
+- [Pinned nix-eda overlay](https://github.com/fossi-foundation/nix-eda/blob/8f990fb77529c09e540e453cd836af9930ec58db/flake.nix): GDSFactory is a Python package under `python3.pkgs`; EQY/SBY use `yosys-eqy`/`yosys-sby`. This overlay does not explicitly define OpenVAF Reloaded.
+- [Pinned scikit-rf derivation](https://github.com/NixOS/nixpkgs/blob/b3aad468604d3e488d627c0b43984eb60e75e782/pkgs/development/python-modules/scikit-rf/default.nix): version 1.8.0, imported as `skrf`; project build/qualification remains pending.
+- [IHP technology collateral](https://ihp-open-pdk-docs.readthedocs.io/en/latest/contents/technology_libraries/index.html): documents the analog, digital and openEMS/Palace directories. This is a reference for platform selection, not a pinned provisioned PDK.
+- [Repository rename](https://docs.github.com/en/repositories/creating-and-managing-repositories/renaming-a-repository) and [GitHub CLI syntax](https://cli.github.com/manual/gh_repo_rename): rename preserves redirects; old URLs must not be reused for a different repository.

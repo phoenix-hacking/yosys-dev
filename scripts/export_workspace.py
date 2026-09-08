@@ -58,7 +58,7 @@ def export(source: Path, destination: Path) -> None:
     revision = lock["sources"]["yosys_candidate"]["revision"]
     repo = lock["sources"]["yosys_candidate"]["repository"]
     (destination / ".gitmodules").write_text(
-        '[submodule "yosys"]\n\tpath = components/yosys\n'
+        '[submodule "components/yosys"]\n\tpath = components/yosys\n'
         f'\turl = https://github.com/{repo}.git\n'
     )
     def git(*args: str) -> None:
@@ -68,7 +68,7 @@ def export(source: Path, destination: Path) -> None:
     git("update-index", "--add", "--cacheinfo", f"160000,{revision},components/yosys")
     print(f"Created independent workspace and staged files: {destination}")
     print("No remote repository was created and nothing was pushed.")
-    print("Review staged changes, commit with your configured Git identity, then create/push asic-stack.")
+    print("Review staged changes, commit with your configured Git identity, then publish asic-flow.")
 
 
 def main() -> int:

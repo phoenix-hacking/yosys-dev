@@ -18,6 +18,7 @@ asic-flow/
 ├── TOOLCHAIN_MATRIX.md
 ├── STACK_EXECUTION_PLAN.md
 ├── STACK_PROGRESS.md
+├── MIXED_SIGNAL_EXECUTION_PLAN.md
 ├── ANALOG_FLOW.md
 ├── toolchain.lock.json
 ├── flake.nix
@@ -132,13 +133,20 @@ See:
 ## Build and reproducibility
 
 ```sh
-git clone <this repository>
-cd <repository>
-git submodule update --init --recursive
+git clone --branch codex/librelane-stack-bootstrap-20260907 https://github.com/phoenix-hacking/yosys-dev.git asic-flow
+cd asic-flow
 python3 scripts/stack.py check
+python3 scripts/stack.py bootstrap
+python3 -m unittest discover -s tests -v
 ```
 
 The stack keeps separate reference/stock/candidate digital profiles. Analog and RF tools require the same discipline: immutable tool identity, PDK/model identity, configuration digest and retained evidence.
+
+Follow [docs/BRINGUP.md](docs/BRINGUP.md) for Nix resolution, tool audits, PDK
+recording and the first qualification runs. `nix/tool-catalog.json` maps the
+required tool names to actual package attributes, executables and Python modules.
+`phoenix-analog-tool-audit --lane all` exits nonzero for missing or unusable tools;
+an available package is still not a qualified design flow.
 
 ## Ownership boundary
 
@@ -156,4 +164,10 @@ The stack keeps separate reference/stock/candidate digital profiles. Analog and 
 
 This remains a bootstrap, not a qualified tapeout environment. Digital Nix/LibreLane/Pyosys builds, PDK qualification, synthesis/formal/place-route evidence, analog model/simulator qualification, analog DRC/LVS/extraction, RF/EM solver packaging and mixed-signal assembly tests remain explicit gates.
 
-The repository contents are now branded and architected as `asic-flow`. The connected GitHub interface still does not expose repository-rename administration, so the remote slug may continue to display `yosys-dev` until it is renamed through GitHub repository settings or another administrative interface.
+The prepared source is on draft PR #1, branch
+`codex/librelane-stack-bootstrap-20260907`; `main` still contains the compiler
+tree until that PR is merged. The GitHub remote is currently `yosys-dev`.
+The connector excludes repository-administration access, so the owner must run
+the rename in [docs/REPOSITORY_RENAME.md](docs/REPOSITORY_RENAME.md). Renaming
+does not merge the PR. Existing immutable compiler source URLs are retained until
+the remote rename is verified; GitHub redirects them after a rename.

@@ -1,20 +1,22 @@
 # Stack progress
 
-Updated 2026-09-07. This is integration/bootstrap progress, not compiler completion or tapeout qualification.
+Updated 2026-09-08. This is integration/bootstrap progress, not compiler completion or tapeout qualification.
 
 | Layer | Status |
 |---|---|
 | Top-level `asic-flow` architecture | PREPARED on branch: digital, analog, RF/EM and mixed-signal lanes documented |
-| Independent GitHub repository / rename | NOT DONE; repository-admin rename/create action unavailable through current connector |
+| GitHub rename to `asic-flow` | BLOCKED; connector excludes administration. Exact owner command and post-rename steps in `docs/REPOSITORY_RENAME.md` |
 | Digital source revisions | Pinned: LibreLane 3.0.14, stock Yosys and candidate Yosys |
 | Transitive Nix build lock | NOT RESOLVED in this environment |
 | CMake/Pyosys package override | Implemented, NOT BUILT |
 | LibreLane pass-through plugin | Implemented; pure helpers tested previously; real API tests pending |
-| Analog/RF Nix discovery | Added for inherited xschem/ngspice/xyce/gdsfactory/OpenVAF-class packages; NOT BUILT |
+| Native/Python required-tool discovery | Corrected pinned attribute paths; package/program/import audit fails closed by lane; Nix evaluation/build NOT RUN |
 | CACE packaging | REQUIRED, NOT YET CLOSED in project profile |
 | openEMS packaging | REQUIRED RF CAPABILITY, NOT YET CLOSED |
 | Palace packaging | REQUIRED RF CAPABILITY, NOT YET CLOSED |
-| scikit-rf packaging | REQUIRED RF SUPPORT, NOT YET CLOSED |
+| scikit-rf packaging | Pinned nixpkgs derivation 1.8.0 located and wired; build/import/qualification NOT RUN |
+| Offline preparation checks | 55 tests: 53 PASS, 2 explicit live LibreLane skips; static/configuration and export checks PASS |
+| Compiler source bootstrap | Exact pinned compiler and all 10 nested submodule checkouts initialized; no compiler source changes |
 | SKY130A PDK provisioning/qualification | NOT RUN |
 | IHP SG13G2 PDK provisioning/qualification | NOT RUN |
 | Digital Yosys compiler build/upstream tests | NOT RUN in this environment |
@@ -40,6 +42,24 @@ Completed repository-architecture work includes:
 - Nix package discovery/audit hooks for analog tooling already exposed by the inherited package set.
 
 None of those items is runtime qualification.
+
+## Preparation repair, 2026-09-08
+
+Review of branch parent `ad39cce779264d26e9620baca776b3f92972b3db` reproduced
+eight offline test errors. This preparation repairs source-lock schema drift,
+restores runtime identity schema compatibility, refreshes the complete export
+manifest, adds the missing analog integration directory and fixes empty-gitlink
+bootstrap handling. The relative Yosys submodule URL follows a repository rename.
+
+Required-tool audits now use a shared native/Python catalog, check selected
+package versions/programs/imports and return nonzero for missing/unusable tools.
+Resolved Nix locks are checked against all five declared source/inherited pins,
+including follows links. Nix pure-evaluation tests are supplied but not run here.
+
+See `evidence/preparation-validation-20260908.json` and `docs/BRINGUP.md`.
+No additional STK build/flow or ANA/RF/MS qualification task is accepted by
+these preparation repairs. The two live LibreLane tests remain skipped because
+the pinned environment is absent. The earlier bootstrap evidence is historical.
 
 ## Next executable sequence
 

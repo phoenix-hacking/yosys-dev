@@ -4,7 +4,10 @@ let
   pkgs = if profile == "reference" then base
     else base.extend (import ./yosys-cmake.nix { inherit src revision; });
 
-  analog = import ./analog-tools.nix { inherit pkgs; };
+  analog = import ./analog-tools.nix {
+    inherit pkgs lock;
+    overrides.librelane = ll;
+  };
 
   ll = if profile == "reference" then pkgs.python3.pkgs.librelane
     else pkgs.python3.pkgs.librelane.override {
@@ -21,11 +24,13 @@ let
     dependencies = [ ll ];
     doCheck = false;
   };
-  py = pkgs.python3.withPackages (ps: [ ll plugin ps.psutil ]);
+  # Python libraries must be installed into the actual flow interpreter.
+  py = pkgs.python3.withPackages (ps: [ plugin ps.psutil ] ++ analog.pythonPackages);
   ys = (pkgs.yosys.withPythonPackages.override { target = pkgs.yosys; })
     (ps: with ps; [ click rich pyyaml ]);
   identity = pkgs.writeText "phoenix-toolchain-${profile}.json" (builtins.toJSON {
-    schema_version = 2;
+    # Runtime identity is independently versioned from the source lock.
+    schema_version = 1;
     inherit profile;
     librelane_revision = lock.sources.librelane.revision;
     yosys_revision = revision;
@@ -35,12 +40,10 @@ let
     openroad = "${pkgs.openroad}/bin/openroad";
     opensta = "${pkgs.opensta}/bin/sta";
     external_binary_plugins = [];
-    analog_rf = {
-      inherited_required = analog.requiredNames;
-      externally_packaged_required = analog.externallyPackagedRequired;
-      missing_in_inherited_package_set = analog.missingRequired;
-      optional_not_present = analog.missingOptional;
-    };
+    toolchain_lock_sha256 = builtins.hashFile "sha256" ../toolchain.lock.json;
+    tool_catalog_sha256 = builtins.hashFile "sha256" ./tool-catalog.json;
+    tool_packages = analog.manifest;
+    missing_required = analog.missingByLane;
   });
   runner = pkgs.symlinkJoin {
     name = "phoenix-asic-${profile}";
@@ -57,21 +60,20 @@ let
         fi
       '')
       (pkgs.writeShellScriptBin "phoenix-analog-tool-audit" ''
-        cat '${identity}'
-        echo
-        echo 'Required external analog/RF packages not yet guaranteed by this profile:' >&2
-        printf '  %s\n' ${builtins.concatStringsSep " " analog.externallyPackagedRequired} >&2
+        exec ${py}/bin/python3 ${../scripts/tool_audit.py} \
+          --lock ${../toolchain.lock.json} --catalog ${./tool-catalog.json} \
+          --identity ${identity} "$@"
       '')
     ];
   };
 in {
   inherit runner identity;
   shell = pkgs.mkShell {
-    packages = [ runner py pkgs.git pkgs.nix pkgs.ciel ] ++ ll.includedTools ++ analog.packages;
+    packages = [ runner py pkgs.git pkgs.nix ] ++ ll.includedTools ++ analog.packages;
     shellHook = ''
       export PHOENIX_PROFILE=${profile}
       echo 'Phoenix ${profile}: use scripts/stack.py doctor before a flow run.'
-      echo 'Analog/RF package audit: phoenix-analog-tool-audit'
+      echo 'Required tool audit: phoenix-analog-tool-audit --lane all'
     '';
   };
 }

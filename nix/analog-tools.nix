@@ -1,42 +1,47 @@
-{ pkgs }:
+# Resolve required tools from the *pinned* inherited EDA package set.
+# Discovery is not a build, simulator/PDK qualification, or signoff result.
+{ pkgs, lock, overrides ? {} }:
 let
+  catalog = builtins.fromJSON (builtins.readFile ./tool-catalog.json);
+  unique = builtins.foldl' (xs: x: if builtins.elem x xs then xs else xs ++ [x]) [];
+  requiredNames = unique (lock.tooling_contract.digital_required
+    ++ lock.tooling_contract.analog_required ++ lock.tooling_contract.rf_required);
+  atPath = path: builtins.foldl'
+    (set: key: if builtins.isAttrs set && builtins.hasAttr key set
+      then builtins.getAttr key set else null) pkgs path;
   resolve = name:
-    if builtins.hasAttr name pkgs then builtins.getAttr name pkgs else null;
-
-  requiredNames = [
-    "xschem"
-    "ngspice"
-    "xyce"
-    "gdsfactory"
-    "openvaf-reloaded"
-  ];
-
-  # These are required by the intended analog/RF release envelope, but may need
-  # a project-local derivation or additional flake input if the inherited
-  # nix-eda package set does not expose them directly.
-  externallyPackagedRequired = [
-    "cace"
-    "openems"
-    "palace"
-    "scikit-rf"
-  ];
-
-  optionalNames = [
-    "qucs-s"
-    "gnucap"
-    "gmsh"
-    "paraview"
-  ];
-
-  resolvedRequired = builtins.filter (x: x != null)
-    (map (name: resolve name) requiredNames);
-  missingRequired = builtins.filter (name: resolve name == null) requiredNames;
-
-  resolvedOptional = builtins.filter (x: x != null)
-    (map (name: resolve name) optionalNames);
-  missingOptional = builtins.filter (name: resolve name == null) optionalNames;
+    let
+      candidates = map (path: { inherit path; package = atPath path; })
+        catalog.${name}.package_candidates;
+      found = builtins.filter (x: x.package != null) candidates;
+    in if builtins.hasAttr name overrides
+      then { path = [ "profile-override" name ]; package = overrides.${name}; }
+      else if found == [] then { path = null; package = null; }
+      else builtins.head found;
+  selected = builtins.listToAttrs (map (name: { inherit name; value = resolve name; }) requiredNames);
+  present = builtins.filter (name: selected.${name}.package != null) requiredNames;
+  packagesOfKind = kind: map (name: selected.${name}.package)
+    (builtins.filter (name: catalog.${name}.kind == kind) present);
+  missingRequired = builtins.filter (name: selected.${name}.package == null) requiredNames;
+  manifest = builtins.listToAttrs (map (name:
+    let
+      item = selected.${name};
+      pkg = item.package;
+    in { inherit name; value = {
+      available = pkg != null;
+      attribute = item.path;
+      kind = catalog.${name}.kind;
+      version = if pkg == null then null else (pkg.version or "unknown");
+      store_path = if pkg == null then null else toString pkg;
+      qualified = false;
+    }; }) requiredNames);
 in {
-  inherit requiredNames externallyPackagedRequired optionalNames;
-  packages = resolvedRequired ++ resolvedOptional;
-  inherit missingRequired missingOptional;
+  inherit requiredNames missingRequired manifest;
+  packages = unique (packagesOfKind "native");
+  pythonPackages = packagesOfKind "python";
+  missingByLane = builtins.listToAttrs (map (lane: {
+    name = lane;
+    value = builtins.filter (name: builtins.elem name missingRequired)
+      lock.tooling_contract."${lane}_required";
+  }) [ "digital" "analog" "rf" ]);
 }

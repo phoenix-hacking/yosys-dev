@@ -4,7 +4,7 @@ Read `README.md`, `SOFTWARE_REQUIREMENTS.md`, `TOOLCHAIN_MATRIX.md` and `STACK_P
 
 ## Ownership
 
-- Native Yosys passes, artifact store, revisions, analyses and mapping belong in `components/yosys` / the independent `phoenix-hacking/yosys-dev` compiler history, with component regression tests.
+- Native Yosys passes, artifact store, revisions, analyses and mapping belong in `components/yosys`, whose compiler-tree history is preserved in this repository, with component regression tests.
 - Digital flow/Nix/LibreLane integration, adapters and end-to-end benchmarks belong at top level.
 - Analog orchestration belongs under `flows/analog`, `integrations/analog`, analog benchmarks/platform code and shared verification infrastructure.
 - RF/EM orchestration belongs under `flows/rf`, solver adapters, RF benchmarks/platform collateral and shared verification infrastructure.

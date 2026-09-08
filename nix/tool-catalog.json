@@ -1,0 +1,256 @@
+{
+  "librelane": {
+    "kind": "python",
+    "package_candidates": [
+      [
+        "python3",
+        "pkgs",
+        "librelane"
+      ]
+    ],
+    "module": "librelane",
+    "programs": [
+      "librelane"
+    ]
+  },
+  "yosys": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "yosys"
+      ]
+    ],
+    "programs": [
+      "yosys"
+    ]
+  },
+  "abc": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "yosys"
+      ]
+    ],
+    "programs": [
+      "yosys-abc"
+    ]
+  },
+  "opensta": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "opensta"
+      ]
+    ],
+    "programs": [
+      "sta"
+    ]
+  },
+  "openroad": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "openroad"
+      ]
+    ],
+    "programs": [
+      "openroad"
+    ]
+  },
+  "klayout": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "klayout"
+      ]
+    ],
+    "programs": [
+      "klayout"
+    ]
+  },
+  "magic": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "magic"
+      ]
+    ],
+    "programs": [
+      "magic"
+    ]
+  },
+  "netgen": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "netgen"
+      ]
+    ],
+    "programs": [
+      "netgen"
+    ]
+  },
+  "verilator": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "verilator"
+      ]
+    ],
+    "programs": [
+      "verilator"
+    ]
+  },
+  "iverilog": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "iverilog"
+      ]
+    ],
+    "programs": [
+      "iverilog",
+      "vvp"
+    ]
+  },
+  "eqy": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "yosys-eqy"
+      ]
+    ],
+    "programs": [
+      "eqy"
+    ]
+  },
+  "sby": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "yosys-sby"
+      ]
+    ],
+    "programs": [
+      "sby"
+    ]
+  },
+  "ciel": {
+    "kind": "python",
+    "package_candidates": [
+      [
+        "python3",
+        "pkgs",
+        "ciel"
+      ]
+    ],
+    "module": "ciel",
+    "programs": [
+      "ciel"
+    ]
+  },
+  "xschem": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "xschem"
+      ]
+    ],
+    "programs": [
+      "xschem"
+    ]
+  },
+  "ngspice": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "ngspice"
+      ]
+    ],
+    "programs": [
+      "ngspice"
+    ]
+  },
+  "xyce": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "xyce"
+      ]
+    ],
+    "programs": [
+      "Xyce"
+    ]
+  },
+  "openvaf-reloaded": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "openvaf-reloaded"
+      ]
+    ],
+    "programs": [
+      "openvaf"
+    ]
+  },
+  "cace": {
+    "kind": "python",
+    "package_candidates": [
+      [
+        "python3",
+        "pkgs",
+        "cace"
+      ]
+    ],
+    "module": "cace",
+    "programs": [
+      "cace"
+    ]
+  },
+  "gdsfactory": {
+    "kind": "python",
+    "package_candidates": [
+      [
+        "python3",
+        "pkgs",
+        "gdsfactory"
+      ]
+    ],
+    "module": "gdsfactory",
+    "programs": []
+  },
+  "openems": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "openems"
+      ]
+    ],
+    "programs": [
+      "openEMS"
+    ]
+  },
+  "palace": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "palace"
+      ]
+    ],
+    "programs": [
+      "palace"
+    ]
+  },
+  "scikit-rf": {
+    "kind": "python",
+    "package_candidates": [
+      [
+        "python3",
+        "pkgs",
+        "scikit-rf"
+      ]
+    ],
+    "module": "skrf",
+    "programs": []
+  }
+}

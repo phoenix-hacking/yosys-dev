@@ -20,12 +20,13 @@ import tool_audit
 class BuildLockTests(unittest.TestCase):
     def setUp(self):
         self.source = stack.load_lock()
-        nodes = {"root": {"inputs": {"librelane": "ll", "yosys-stock": "stock", "yosys-candidate": "candidate"}}}
+        nodes = {"root": {"inputs": {"librelane": "ll", "yosys-stock": "stock", "yosys-candidate": "candidate", "hotspot-thermal-source": "thermal"}}}
         revisions = {"ll": self.source["sources"]["librelane"]["revision"],
                      "stock": self.source["sources"]["yosys_stock"]["revision"],
                      "candidate": self.source["sources"]["yosys_candidate"]["revision"],
                      "eda": self.source["inherited"]["nix_eda_revision"],
-                     "np": self.source["inherited"]["nixpkgs_revision"]}
+                     "np": self.source["inherited"]["nixpkgs_revision"],
+                     "thermal": self.source["extension_sources"]["hotspot-thermal"]["revision"]}
         for node, revision in revisions.items():
             nodes[node] = {"locked": {"rev": revision, "narHash": "unit-test-fixture-not-a-real-build-lock"}}
         nodes["ll"]["inputs"] = {"nix-eda": "eda"}
@@ -40,7 +41,7 @@ class BuildLockTests(unittest.TestCase):
         self.assertFalse(self.verify()["eda_validated"])
 
     def test_each_changed_revision_rejected(self):
-        for node in ("ll", "stock", "candidate", "eda", "np"):
+        for node in ("ll", "stock", "candidate", "eda", "np", "thermal"):
             with self.subTest(node=node):
                 previous = self.build["nodes"][node]["locked"]["rev"]
                 self.build["nodes"][node]["locked"]["rev"] = "0" * 40
@@ -51,7 +52,7 @@ class BuildLockTests(unittest.TestCase):
     def test_follows_path_supported(self):
         self.build["nodes"]["root"]["inputs"]["shared-pkgs"] = "np"
         self.build["nodes"]["eda"]["inputs"]["nixpkgs"] = ["shared-pkgs"]
-        self.assertEqual(len(self.verify()["revisions"]), 5)
+        self.assertEqual(len(self.verify()["revisions"]), 6)
 
     def test_follows_cycle_rejected(self):
         self.build["nodes"]["eda"]["inputs"]["nixpkgs"] = ["librelane", "nix-eda", "nixpkgs"]

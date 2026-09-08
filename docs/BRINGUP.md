@@ -38,7 +38,7 @@ nix develop .#candidate --command python3 -m unittest discover -s tests -p test_
 
 `resolve` checks the actual locked LibreLane, stock/candidate Yosys, inherited
 nix-eda and nixpkgs revisions against the source contract, including Nix follows
-links. Retain the resolved `flake.lock`, derivation/store identities and build
+links, plus the HotSpot thermal-source pin. Retain the resolved `flake.lock`, derivation/store identities and build
 logs. Run upstream Yosys regressions before accepting STK-11. No transitive lock
 is committed by the preparation work because it has not been resolved by Nix.
 
@@ -97,6 +97,9 @@ constraints must travel with the macro views. A larger CPU/GPU/DSP/NPU benchmark
 comes after these acceptance gates.
 
 ## Source maintenance
+
+For the concrete verification/IP/profiling/thermal extensions and their separate
+acceptance checks, follow [TOOL_EXTENSIONS.md](TOOL_EXTENSIONS.md).
 
 After reviewing and staging intended source changes:
 

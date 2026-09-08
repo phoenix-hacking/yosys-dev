@@ -174,6 +174,12 @@ checks that Python imports belong to the selected package. Passing the audit
 establishes availability only; a release lane still requires its complete PDK,
 simulation, verification and representative flow gates.
 
+Optional extensions must close a specific capability gap and include a runnable
+workflow and acceptance check. Current extensions are `verification` (cocotb/MCY),
+`ip` (FuseSoC/Edalize), `profiling` (perf/heaptrack) and `thermal` (UVA HotSpot).
+Their requirements apply when selected; baseline lane audits stay independent.
+See `docs/TOOL_EXTENSIONS.md`. Package names without integration are not additions.
+
 ## 11. Validation hierarchy
 
 Fast PR gate:

@@ -12,31 +12,48 @@
       url = "git+https://github.com/YosysHQ/yosys.git?rev=435977e97008578a4532da60e70f75b5e88d076d&submodules=1";
       flake = false;
     };
+    hotspot-thermal-source = {
+      url = "github:uvahotspot/HotSpot/f18831e48cef5d62580585cca0d7fab6c71bc3cc";
+      flake = false;
+    };
   };
-  outputs = { self, librelane, yosys-candidate, yosys-stock }:
+  outputs = { self, librelane, yosys-candidate, yosys-stock, hotspot-thermal-source }:
     let
       system = "x86_64-linux";
       base = librelane.legacyPackages.${system};
       lock = builtins.fromJSON (builtins.readFile ./toolchain.lock.json);
-      mk = profile: src: revision:
-        import ./nix/profile.nix {
-          inherit profile src revision librelane self lock base;
-        };
-      reference = mk "reference" null null;
-      stock = mk "stock" yosys-stock lock.sources.yosys_stock.revision;
-      candidate = mk "candidate" yosys-candidate lock.sources.yosys_candidate.revision;
-    in {
-      packages.${system} = {
-        reference = reference.runner;
-        stock = stock.runner;
-        candidate = candidate.runner;
-        default = reference.runner;
+      hotspot = base.callPackage ./nix/hotspot-thermal.nix {
+        src = hotspot-thermal-source;
+        revision = lock.extension_sources.hotspot-thermal.revision;
       };
-      devShells.${system} = {
-        reference = reference.shell;
-        stock = stock.shell;
-        candidate = candidate.shell;
-        default = reference.shell;
+      mk = profile: src: revision: extensions:
+        import ./nix/profile.nix {
+          inherit profile src revision librelane self lock base extensions;
+          extraPackages.hotspot-thermal = hotspot;
+        };
+      definitions = {
+        reference = { src = null; revision = null; };
+        stock = { src = yosys-stock; revision = lock.sources.yosys_stock.revision; };
+        candidate = { src = yosys-candidate; revision = lock.sources.yosys_candidate.revision; };
+      };
+      baseline = base.lib.mapAttrs (name: def: mk name def.src def.revision []) definitions;
+      extensionNames = builtins.attrNames lock.tooling_contract.extensions;
+      extended = builtins.listToAttrs (builtins.concatLists (map (profile:
+        map (group: {
+          name = "${profile}-${group}";
+          value = let def = definitions.${profile};
+            in mk profile def.src def.revision
+              (if group == "extended" then extensionNames else [ group ]);
+        }) (extensionNames ++ [ "extended" ])
+      ) (builtins.attrNames definitions)));
+      profiles = baseline // extended;
+    in {
+      packages.${system} = (base.lib.mapAttrs (_: value: value.runner) profiles) // {
+        default = baseline.reference.runner;
+        hotspot-thermal = hotspot;
+      };
+      devShells.${system} = (base.lib.mapAttrs (_: value: value.shell) profiles) // {
+        default = baseline.reference.shell;
       };
       checks.${system}.offline =
         assert (import ./nix/tests/tool-discovery.nix).status == "PASS";

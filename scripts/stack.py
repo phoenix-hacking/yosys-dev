@@ -71,8 +71,40 @@ def load_lock(root: Path = ROOT) -> dict:
                 or len(set(names)) != len(names)):
             raise ValueError(f"Invalid required tool list: {lane}")
         required.update(names)
-    if required != set(catalog):
-        raise ValueError("Required tooling contract differs from Nix tool catalog")
+    extensions = value["tooling_contract"].get("extensions", {})
+    if not isinstance(extensions, dict):
+        raise ValueError("Invalid tool extensions")
+    supplemental = set()
+    for group, names in extensions.items():
+        if (not re.fullmatch(r"[a-z][a-z0-9-]*", group) or group in (*PROFILES, "all", "extended", "digital", "analog", "rf", "mixed_signal")
+                or not isinstance(names, list) or not names
+                or any(not isinstance(name, str) for name in names)
+                or len(set(names)) != len(names)):
+            raise ValueError(f"Invalid tool extension: {group}")
+        if set(names) & (required | supplemental):
+            raise ValueError(f"Extension duplicates an existing tool: {group}")
+        supplemental.update(names)
+    if required | supplemental != set(catalog):
+        raise ValueError("Tooling contract differs from Nix tool catalog")
+    for name, spec in catalog.items():
+        if spec["kind"] not in ("native", "python"):
+            raise ValueError(f"Unknown package kind: {name}")
+        paths = spec["package_candidates"]
+        if not isinstance(paths, list) or any(not isinstance(path, list) or not path
+                or any(not isinstance(part, str) or not part for part in path) for path in paths):
+            raise ValueError(f"Invalid package attribute path: {name}")
+        if (not isinstance(spec["programs"], list)
+                or any(not isinstance(program, str) or not re.fullmatch(r"[A-Za-z0-9_.+-]+", program)
+                       or program in (".", "..") for program in spec["programs"])):
+            raise ValueError(f"Invalid package program: {name}")
+        if spec["kind"] == "python" and not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_.]*", spec.get("module", "")):
+            raise ValueError(f"Invalid Python module: {name}")
+    pins = value.get("extension_sources", {})
+    if {spec["source_pin"] for spec in catalog.values() if "source_pin" in spec} != set(pins):
+        raise ValueError("Extension source pins differ from catalog")
+    for name, entry in pins.items():
+        if name not in supplemental or not REPO.fullmatch(entry["repository"]) or not SHA.fullmatch(entry["revision"]):
+            raise ValueError(f"Unpinned extension source: {name}")
     if value["initial_envelope"]["native_incremental_synthesis"] or value["initial_envelope"]["physical_eco"]:
         raise ValueError("Bootstrap does not support incremental synthesis or physical ECO")
     return value
@@ -84,6 +116,8 @@ def rendered_flake(root: Path = ROOT) -> str:
     for token, key in (("LIBRELANE", "librelane"), ("CANDIDATE", "yosys_candidate"), ("STOCK", "yosys_stock")):
         text = text.replace(f"@{token}_REV@", lock["sources"][key]["revision"])
         text = text.replace(f"@{token}_REPO@", lock["sources"][key]["repository"])
+    thermal = lock["extension_sources"]["hotspot-thermal"]
+    text = text.replace("@HOTSPOT_REPO@", thermal["repository"]).replace("@HOTSPOT_REV@", thermal["revision"])
     if re.search(r"@[A-Z_]+@", text):
         raise ValueError("Unresolved flake template token")
     return text
@@ -160,6 +194,7 @@ def verify_build_lock(root: Path = ROOT) -> dict:
         ("librelane",): source["sources"]["librelane"]["revision"],
         ("yosys-stock",): source["sources"]["yosys_stock"]["revision"],
         ("yosys-candidate",): source["sources"]["yosys_candidate"]["revision"],
+        ("hotspot-thermal-source",): source["extension_sources"]["hotspot-thermal"]["revision"],
         ("librelane", "nix-eda"): source["inherited"]["nix_eda_revision"],
         ("librelane", "nix-eda", "nixpkgs"): source["inherited"]["nixpkgs_revision"],
     }

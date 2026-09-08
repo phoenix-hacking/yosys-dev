@@ -10,6 +10,8 @@ Verification is domain-specific and evidence-driven.
 - LibreLane/OpenROAD implementation checks
 - DRC/LVS/antenna as required by the PDK
 - stock-vs-candidate matched QoR runs
+- reusable cocotb stimulus/oracles and MCY mutation triage under the opt-in
+  `verification` shell; commands and error criteria in `docs/TOOL_EXTENSIONS.md`
 
 ## Analog
 

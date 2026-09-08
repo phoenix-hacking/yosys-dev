@@ -1,12 +1,14 @@
 # Keep reference, matched stock and candidate environments explicit.
-{ profile, src, revision, librelane, self, lock, base }:
+{ profile, src, revision, librelane, self, lock, base, extensions ? [], extraPackages ? {} }:
 let
   pkgs = if profile == "reference" then base
     else base.extend (import ./yosys-cmake.nix { inherit src revision; });
 
   analog = import ./analog-tools.nix {
-    inherit pkgs lock;
-    overrides.librelane = ll;
+    inherit pkgs lock extensions;
+    overrides = extraPackages // { librelane = ll; }
+      # MCY's scripts embed Yosys paths; bind them to this comparison profile.
+      // pkgs.lib.optionalAttrs (pkgs ? mcy) { mcy = pkgs.mcy.override { yosys = pkgs.yosys; }; };
   };
 
   ll = if profile == "reference" then pkgs.python3.pkgs.librelane
@@ -44,7 +46,14 @@ let
     tool_catalog_sha256 = builtins.hashFile "sha256" ./tool-catalog.json;
     tool_packages = analog.manifest;
     missing_required = analog.missingByLane;
+    enabled_extensions = extensions;
+    missing_extensions = analog.missingByExtension;
   });
+  toolAudit = name: pkgs.writeShellScriptBin name ''
+    exec ${py}/bin/python3 ${../scripts/tool_audit.py} \
+      --lock ${../toolchain.lock.json} --catalog ${./tool-catalog.json} \
+      --identity ${identity} "$@"
+  '';
   runner = pkgs.symlinkJoin {
     name = "phoenix-asic-${profile}";
     paths = [
@@ -59,21 +68,19 @@ let
           cat '${identity}'
         fi
       '')
-      (pkgs.writeShellScriptBin "phoenix-analog-tool-audit" ''
-        exec ${py}/bin/python3 ${../scripts/tool_audit.py} \
-          --lock ${../toolchain.lock.json} --catalog ${./tool-catalog.json} \
-          --identity ${identity} "$@"
-      '')
+      (toolAudit "phoenix-tool-audit")
+      (toolAudit "phoenix-analog-tool-audit") # compatibility with existing handoff
     ];
   };
 in {
   inherit runner identity;
   shell = pkgs.mkShell {
-    packages = [ runner py pkgs.git pkgs.nix ] ++ ll.includedTools ++ analog.packages;
+    packages = [ runner py pkgs.git pkgs.nix pkgs.gnumake ] ++ ll.includedTools ++ analog.packages;
     shellHook = ''
       export PHOENIX_PROFILE=${profile}
       echo 'Phoenix ${profile}: use scripts/stack.py doctor before a flow run.'
-      echo 'Required tool audit: phoenix-analog-tool-audit --lane all'
+      echo 'Required tool audit: phoenix-tool-audit --lane all'
+      echo 'Enabled extensions: ${builtins.concatStringsSep ", " extensions}'
     '';
   };
 }

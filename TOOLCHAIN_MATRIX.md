@@ -87,6 +87,20 @@ Initial mixed-signal verification is **hierarchical**: analog/RF blocks are char
 
 Future co-simulation research may evaluate XSPICE, Xyce/digital coupling, `spicebind`, cocotb-driven orchestration, or other open mechanisms, but those must earn their own correctness and convergence gates.
 
+## Complementary workflows
+
+These extensions address repository gaps and are opt-in. Their executable
+contracts and commands are in [docs/TOOL_EXTENSIONS.md](docs/TOOL_EXTENSIONS.md).
+Existing OpenROAD placement/routing, OpenRCX, PDNSim, DFT and partitioning
+capabilities are reused through OpenROAD, without duplicate tool entries.
+
+| Gap | Tools / shell suffix | Added implementation | Qualification state |
+|---|---|---|---|
+| Reusable RTL stimulus and mutation detection | cocotb, MCY / `verification` | Arithmetic/reset/wrap oracle; seeded MCY adapter rejects infrastructure failures | Nix and simulator/mutation execution pending |
+| Reusable IP filesets and build targets | FuseSoC, Edalize / `ip` | CAPI2 benchmark core with self-checking Icarus target | Nix and live target execution pending |
+| Compiler CPU stacks and heap allocations | perf, heaptrack / `profiling` | Audited stock/candidate capture with input/binary hashes and nonempty-artifact gate | Runner failure paths tested; real captures pending |
+| Temperature response to floorplan/power | UVA HotSpot / `thermal` | Pinned build plus coupled-block thermal oracle | Native build/synthetic smoke PASS; Nix and calibrated-model qualification pending |
+
 ## Platforms
 
 | Platform | Intended use | Required lanes | Status |

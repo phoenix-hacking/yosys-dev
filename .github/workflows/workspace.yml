@@ -23,5 +23,5 @@ jobs:
         run: |
           cd work
           python3 scripts/stack.py check
-          python3 -m compileall -q scripts integrations tests
+          python3 -m compileall -q scripts integrations verification/cocotb tests
           python3 -m unittest discover -s tests -v

@@ -1,0 +1,4 @@
+# Run from the repository root through scripts/profile_yosys.py.
+read_verilog benchmarks/designs/mixed/A/top.v
+synth -top mixed_top
+stat

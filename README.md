@@ -148,6 +148,11 @@ required tool names to actual package attributes, executables and Python modules
 `phoenix-analog-tool-audit --lane all` exits nonzero for missing or unusable tools;
 an available package is still not a qualified design flow.
 
+[docs/TOOL_EXTENSIONS.md](docs/TOOL_EXTENSIONS.md) adds opt-in workflows for
+cocotb/MCY verification, FuseSoC/Edalize IP builds, perf/heaptrack compiler
+profiling and HotSpot thermal analysis. Each has an invocation and acceptance
+check. Select shells such as `reference-verification` or `candidate-profiling`.
+
 ## Ownership boundary
 
 - **Yosys:** synthesis/compiler work.

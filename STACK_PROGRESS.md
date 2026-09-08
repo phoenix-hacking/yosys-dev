@@ -15,7 +15,9 @@ Updated 2026-09-08. This is integration/bootstrap progress, not compiler complet
 | openEMS packaging | REQUIRED RF CAPABILITY, NOT YET CLOSED |
 | Palace packaging | REQUIRED RF CAPABILITY, NOT YET CLOSED |
 | scikit-rf packaging | Pinned nixpkgs derivation 1.8.0 located and wired; build/import/qualification NOT RUN |
-| Offline preparation checks | 55 tests: 53 PASS, 2 explicit live LibreLane skips; static/configuration and export checks PASS |
+| Offline preparation checks | 63 tests: 61 PASS, 2 explicit live LibreLane skips; static/configuration and export checks PASS |
+| Complementary verification / IP / profiling workflows | cocotb/MCY oracle + mutation adapter, FuseSoC/Edalize core, perf/heaptrack capture runner implemented; pinned Nix package paths wired; live workflow execution pending |
+| HotSpot thermal workflow | Immutable source + Nix recipe; native GCC build and coupled-block heat-response smoke PASS; Nix build and calibrated process/package model pending |
 | Compiler source bootstrap | Exact pinned compiler and all 10 nested submodule checkouts initialized; no compiler source changes |
 | SKY130A PDK provisioning/qualification | NOT RUN |
 | IHP SG13G2 PDK provisioning/qualification | NOT RUN |
@@ -62,6 +64,14 @@ these preparation repairs. The two live LibreLane tests remain skipped because
 the pinned environment is absent. The earlier bootstrap evidence is historical.
 
 ## Next executable sequence
+
+The complementary additions and exact invocations are in `docs/TOOL_EXTENSIONS.md`.
+They close specific gaps in reusable testbenches, mutation detection, IP manifests,
+compiler profiling and thermal response. They add seven tools across four opt-in
+groups and do not duplicate OpenROAD capabilities. Source pins for Yosys,
+LibreLane, nix-eda and nixpkgs are unchanged. Validation is recorded in
+`evidence/extensions-validation-20260908.json`; no STK/ANA/RF/MS design milestone
+is accepted from these additions.
 
 1. Resolve the Nix closure and build the existing digital reference/stock/candidate profiles.
 2. Extend/close the analog profile until the audit shows Xschem, ngspice, Xyce, OpenVAF, CACE, Magic, KLayout, Netgen and GDSFactory are all present.

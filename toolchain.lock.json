@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "status": "digital-source-pinned; analog-rf-tooling-catalogued; build-and-flow-validation-pending",
+  "status": "source-pinned; core-and-extension-tooling-catalogued; Nix-and-EDA-qualification-pending",
   "system": "x86_64-linux",
   "nix_minimum": "2.27.0",
   "sources": {
@@ -64,7 +64,24 @@
       "pygmid",
       "gmsh",
       "paraview"
-    ]
+    ],
+    "extensions": {
+      "verification": [
+        "cocotb",
+        "mcy"
+      ],
+      "ip": [
+        "fusesoc",
+        "edalize"
+      ],
+      "profiling": [
+        "perf",
+        "heaptrack"
+      ],
+      "thermal": [
+        "hotspot-thermal"
+      ]
+    }
   },
   "platforms": {
     "sky130a": {
@@ -89,5 +106,11 @@
     "analog_platform": "sky130a",
     "rf_platform": "ihp_sg13g2",
     "full_chip_ams_cosimulation": false
+  },
+  "extension_sources": {
+    "hotspot-thermal": {
+      "repository": "uvahotspot/HotSpot",
+      "revision": "f18831e48cef5d62580585cca0d7fab6c71bc3cc"
+    }
   }
 }

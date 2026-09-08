@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-08",
+  "branch": "codex/librelane-stack-bootstrap-20260907",
+  "parent_commit": "85fdb66e1bbc0cfddff481a455665b91fd73c264",
+  "scope": "Concrete complementary tooling workflows; no STK/ANA/RF/MS milestone acceptance",
+  "extensions": {
+    "verification": [
+      "cocotb",
+      "mcy"
+    ],
+    "ip": [
+      "fusesoc",
+      "edalize"
+    ],
+    "profiling": [
+      "perf",
+      "heaptrack"
+    ],
+    "thermal": [
+      "hotspot-thermal"
+    ]
+  },
+  "unchanged_sources": [
+    "librelane",
+    "yosys_stock",
+    "yosys_candidate",
+    "nix-eda",
+    "nixpkgs"
+  ],
+  "validation": {
+    "offline_tests": {
+      "command": "python3 -m unittest discover -s tests -v",
+      "total": 63,
+      "passed": 61,
+      "skipped": 2,
+      "failures": 0,
+      "errors": 0,
+      "skips": "Live LibreLane unavailable"
+    },
+    "static_configuration": "PASS",
+    "python_compilation": "PASS",
+    "shell_syntax": "PASS",
+    "core_yaml_and_source_paths": "PASS; not a live FuseSoC result",
+    "export_manifest": "PASS",
+    "native_thermal_build": {
+      "repository": "uvahotspot/HotSpot",
+      "revision": "f18831e48cef5d62580585cca0d7fab6c71bc3cc",
+      "command": "make -C .state/HotSpot -j2 hotspot SUPERLU=0",
+      "compiler": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+      "status": "PASS"
+    },
+    "native_thermal_smoke": {
+      "status": "THERMAL_SMOKE_PASS",
+      "eda_validated": false,
+      "scope": "synthetic block-model response; no process/package calibration",
+      "hotspot_sha256": "5c3fcad8ae63144b218d2fc1de28ea862f5c6d3751e7ab381d576e5c00cab4bb",
+      "config_sha256": "21438f0f63e267131c55b97a60be4fa5d205a54409be70c90dea3129efaa65b0",
+      "commands": [
+        [
+          ".state/HotSpot/hotspot",
+          "-c",
+          "model.config",
+          "-f",
+          "two_blocks.flp",
+          "-p",
+          "cold.ptrace",
+          "-steady_file",
+          "cold.steady",
+          "-model_type",
+          "block",
+          "-ambient",
+          "300",
+          "-leakage_used",
+          "0",
+          "-package_model_used",
+          "0"
+        ],
+        [
+          ".state/HotSpot/hotspot",
+          "-c",
+          "model.config",
+          "-f",
+          "two_blocks.flp",
+          "-p",
+          "hot.ptrace",
+          "-steady_file",
+          "hot.steady",
+          "-model_type",
+          "block",
+          "-ambient",
+          "300",
+          "-leakage_used",
+          "0",
+          "-package_model_used",
+          "0"
+        ]
+      ],
+      "temperatures_kelvin": {
+        "cold": {
+          "digital": 300.0,
+          "analog": 300.0,
+          "iface_digital": 300.0,
+          "iface_analog": 300.0,
+          "hsp_digital": 300.0,
+          "hsp_analog": 300.0,
+          "hsink_digital": 300.0,
+          "hsink_analog": 300.0,
+          "inode_0": 300.0,
+          "inode_1": 300.0,
+          "inode_2": 300.0,
+          "inode_3": 300.0,
+          "inode_4": 300.0,
+          "inode_5": 300.0,
+          "inode_6": 300.0,
+          "inode_7": 300.0,
+          "inode_8": 300.0,
+          "inode_9": 300.0,
+          "inode_10": 300.0,
+          "inode_11": 300.0
+        },
+        "hot": {
+          "digital": 307.29,
+          "analog": 301.97,
+          "iface_digital": 306.25,
+          "iface_analog": 301.85,
+          "hsp_digital": 301.77,
+          "hsp_analog": 301.33,
+          "hsink_digital": 301.13,
+          "hsink_analog": 301.1,
+          "inode_0": 301.1,
+          "inode_1": 301.03,
+          "inode_2": 301.08,
+          "inode_3": 301.08,
+          "inode_4": 301.1,
+          "inode_5": 301.02,
+          "inode_6": 301.08,
+          "inode_7": 301.08,
+          "inode_8": 301.07,
+          "inode_9": 300.99,
+          "inode_10": 301.05,
+          "inode_11": 301.05
+        }
+      }
+    }
+  },
+  "not_run": [
+    "Nix evaluation, resolved flake.lock and package builds (Nix unavailable)",
+    "Live cocotb original/negative-control simulation and MCY mutation run (simulator/environment unavailable)",
+    "Live FuseSoC/Edalize simulation target (environment unavailable)",
+    "Real stock/candidate perf and heaptrack captures (environment unavailable)",
+    "Process/package-calibrated thermal analysis",
+    "All prior digital/analog/RF/mixed-signal qualification gates"
+  ],
+  "eda_validated": false,
+  "next_dependency_ready_step": "On the Nix host, resolve and check the six source/inherited lock identities, build each selected extension, then run the acceptance commands in docs/TOOL_EXTENSIONS.md."
+}

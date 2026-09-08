@@ -252,5 +252,93 @@
     ],
     "module": "skrf",
     "programs": []
+  },
+  "cocotb": {
+    "kind": "python",
+    "package_candidates": [
+      [
+        "python3",
+        "pkgs",
+        "cocotb"
+      ]
+    ],
+    "module": "cocotb",
+    "programs": [
+      "cocotb-config"
+    ],
+    "upstream": "https://github.com/cocotb/cocotb"
+  },
+  "mcy": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "mcy"
+      ]
+    ],
+    "programs": [
+      "mcy"
+    ],
+    "upstream": "https://github.com/YosysHQ/mcy"
+  },
+  "fusesoc": {
+    "kind": "python",
+    "package_candidates": [
+      [
+        "fusesoc"
+      ]
+    ],
+    "module": "fusesoc",
+    "programs": [
+      "fusesoc"
+    ],
+    "upstream": "https://github.com/olofk/fusesoc"
+  },
+  "edalize": {
+    "kind": "python",
+    "package_candidates": [
+      [
+        "python3",
+        "pkgs",
+        "edalize"
+      ]
+    ],
+    "module": "edalize",
+    "programs": [],
+    "upstream": "https://github.com/olofk/edalize"
+  },
+  "perf": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "perf"
+      ]
+    ],
+    "programs": [
+      "perf"
+    ],
+    "upstream": "https://perfwiki.github.io/"
+  },
+  "heaptrack": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "heaptrack"
+      ]
+    ],
+    "programs": [
+      "heaptrack",
+      "heaptrack_print"
+    ],
+    "upstream": "https://invent.kde.org/sdk/heaptrack"
+  },
+  "hotspot-thermal": {
+    "kind": "native",
+    "package_candidates": [],
+    "programs": [
+      "hotspot"
+    ],
+    "upstream": "https://github.com/uvahotspot/HotSpot",
+    "source_pin": "hotspot-thermal",
+    "packaging_note": "Enable the thermal extension for the project HotSpot derivation; pkgs.hotspot is a different KDE application."
   }
 }

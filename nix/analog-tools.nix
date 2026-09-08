@@ -1,11 +1,14 @@
 # Resolve required tools from the *pinned* inherited EDA package set.
 # Discovery is not a build, simulator/PDK qualification, or signoff result.
-{ pkgs, lock, overrides ? {} }:
+{ pkgs, lock, overrides ? {}, extensions ? [] }:
 let
   catalog = builtins.fromJSON (builtins.readFile ./tool-catalog.json);
   unique = builtins.foldl' (xs: x: if builtins.elem x xs then xs else xs ++ [x]) [];
-  requiredNames = unique (lock.tooling_contract.digital_required
+  groups = lock.tooling_contract.extensions or {};
+  baselineNames = unique (lock.tooling_contract.digital_required
     ++ lock.tooling_contract.analog_required ++ lock.tooling_contract.rf_required);
+  requiredNames = assert builtins.all (name: builtins.hasAttr name groups) extensions;
+    unique (baselineNames ++ builtins.concatLists (map (name: groups.${name}) extensions));
   atPath = path: builtins.foldl'
     (set: key: if builtins.isAttrs set && builtins.hasAttr key set
       then builtins.getAttr key set else null) pkgs path;
@@ -44,4 +47,8 @@ in {
     value = builtins.filter (name: builtins.elem name missingRequired)
       lock.tooling_contract."${lane}_required";
   }) [ "digital" "analog" "rf" ]);
+  missingByExtension = builtins.listToAttrs (map (group: {
+    name = group;
+    value = builtins.filter (name: builtins.elem name missingRequired) groups.${group};
+  }) extensions);
 }

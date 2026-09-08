@@ -11,6 +11,15 @@ let
     };
     overrides.librelane = fixture "selected-librelane";
   };
+  extension = import ../analog-tools.nix {
+    inherit lock;
+    extensions = [ "verification" "thermal" ];
+    pkgs = {
+      python3.pkgs.cocotb = fixture "cocotb";
+      hotspot = throw "The KDE perf viewer must never satisfy thermal analysis";
+    };
+    overrides.hotspot-thermal = fixture "hotspot-thermal";
+  };
 in
 assert found.manifest.gdsfactory.available;
 assert found.manifest.gdsfactory.attribute == [ "python3" "pkgs" "gdsfactory" ];
@@ -21,4 +30,10 @@ assert !builtins.elem "librelane" found.missingByLane.digital;
 assert found.manifest.librelane.store_path == "/nix/store/unit-test-selected-librelane";
 assert builtins.length found.packages == 1;
 assert builtins.length found.pythonPackages == 2;
+assert !builtins.hasAttr "cocotb" found.manifest;
+assert extension.manifest.cocotb.available;
+assert builtins.elem "mcy" extension.missingByExtension.verification;
+assert extension.missingByExtension.thermal == [];
+assert extension.manifest.hotspot-thermal.store_path == "/nix/store/unit-test-hotspot-thermal";
+assert !builtins.hasAttr "heaptrack" extension.manifest;
 { status = "PASS"; scope = "package discovery only"; }

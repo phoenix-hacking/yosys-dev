@@ -1,192 +1,102 @@
-# Analog and Mixed-Signal ASIC Flow
+# Analog / Mixed-Signal Flow
 
-This document defines the analog/mixed-signal lane of `asic-flow`. It is deliberately parallel to, rather than embedded inside, the LibreLane/Yosys digital path.
+This document describes the custom-circuit side of `asic-flow`. RF/EM is a separate first-class lane; see `flows/rf/README.md`. Top-level composition is described in `flows/mixed_signal/README.md`.
 
-## Objectives
+## Scope
 
-The analog lane must support a reproducible open-source path from schematic through post-layout characterization for analog IP and provide stable abstract views for mixed-signal SoC integration.
+The analog lane covers transistor-level custom IC blocks such as amplifiers/OTAs, comparators, bias/reference circuits, ADC/DAC sub-blocks, PLL/VCO analog circuitry, sensor interfaces, power-management blocks, LNAs and mixers when their verification is predominantly circuit-level.
 
-The first production-quality target is not automated analog synthesis. It is a trustworthy, scriptable, reviewable analog implementation and verification environment with explicit tool/model/PDK identity.
+Distributed RF structures such as inductors, transformers/baluns and transmission lines additionally require the RF/EM lane.
 
-## Initial toolchain
-
-| Function | Primary tool | Secondary / optional |
-|---|---|---|
-| Schematic capture | Xschem | Qucs-S later |
-| Pre-layout SPICE | ngspice | Xyce |
-| Verilog-A compact models | OpenVAF / OSDI | simulator-native model support where applicable |
-| Device sizing / gm-ID analysis | Python + pygmid where supported | project-specific notebooks/scripts |
-| Custom layout | KLayout and/or Magic | GDSFactory for generated geometry |
-| DRC | PDK-supported KLayout/Magic decks | both where available for cross-checking |
-| LVS | Netgen | PDK-specific alternatives if required |
-| Extraction | PDK-supported extraction path | field/EM extraction later where justified |
-| Post-layout simulation | ngspice / Xyce | — |
-| Specification regression | CACE | custom Python harnesses |
-| RF / EM | openEMS / Palace where supported | later research lane |
-| Generated analog layout | GDSFactory / BAG/ALIGN-style research | optional; never required for hand-layout support |
-
-## Canonical analog flow
+## Baseline toolchain
 
 ```text
-schematic + model set
-        ↓
-netlist generation
-        ↓
-pre-layout simulation
-        ↓
-corner / temperature / parameter sweeps
-        ↓
-custom layout
-        ↓
-DRC
-        ↓
-LVS
-        ↓
-parasitic extraction
-        ↓
-post-layout simulation
-        ↓
-specification characterization
-        ↓
-qualified IP release
+Xschem
+  -> schematic + SPICE/Verilog-A netlist
+ngspice / Xyce
+  -> operating point, DC, AC, transient, noise and applicable nonlinear analyses
+OpenVAF Reloaded / OSDI or PDK-supported Verilog-A model path
+  -> compact device models
+Magic / KLayout
+  -> custom layout + DRC/extraction
+Netgen and/or PDK-supported KLayout LVS
+  -> layout-vs-schematic
+post-layout ngspice / Xyce
+  -> extracted verification
+CACE
+  -> specification/corner/regression automation
+GDSFactory
+  -> parameterized geometry and PCells where supported
 ```
 
-A qualified analog release must retain the exact schematic/netlist revision, layout revision, extracted view, PDK/model revision, simulator identity, verification decks, and characterization configuration.
+Tool availability and release status are tracked in `TOOLCHAIN_MATRIX.md`.
 
-## Recommended repository layout
+## Standard analog implementation sequence
 
-```text
-integrations/analog/
-├── xschem/
-├── spice/
-├── cace/
-├── extraction/
-└── mixed_signal/
+1. Define electrical specification and operating conditions.
+2. Capture schematic and model dependencies.
+3. Verify operating point and basic functionality.
+4. Sweep relevant PVT and block-specific metrics.
+5. Create custom layout with matching/symmetry/guarding techniques as applicable.
+6. Run DRC.
+7. Run LVS.
+8. Extract parasitics.
+9. Re-run post-layout simulation and compare with pre-layout behavior.
+10. Run CACE characterization/spec regression.
+11. Run mismatch/Monte-Carlo where models and specification require it.
+12. Publish an immutable macro release bundle for mixed-signal integration.
 
-benchmarks/analog/
-├── primitives/
-├── opamps/
-├── references/
-├── data_converters/
-└── mixed_signal_wrappers/
+## Block-specific evidence examples
 
-platforms/
-├── sky130-analog.json
-└── ihp-sg13g2.json
-```
+ADC:
+- sample rate and input bandwidth
+- offset/gain
+- DNL/INL as applicable
+- SNDR/SINAD/ENOB/SFDR as applicable
+- clock/aperture sensitivity
+- reference/bias behavior
+- PVT and mismatch
+- extracted/post-layout results
 
-Do not commit foundry-restricted collateral. Platform manifests should point to provisioned PDK content by revision/digest.
+LNA/mixer:
+- gain
+- noise figure/noise
+- input/output matching where applicable
+- linearity/compression/intermodulation metrics where applicable
+- stability
+- supply/current
+- PVT and extracted behavior
+- RF passives characterized through the RF/EM lane rather than ideal-only models
 
-## First qualification designs
+PLL/VCO-related blocks:
+- tuning range
+- startup/locking assumptions at block/system level
+- phase-noise/jitter-relevant metrics where the simulator/model supports them
+- supply sensitivity
+- PVT and extracted behavior
 
-The initial regression suite should contain small designs with unambiguous acceptance metrics rather than immediately attempting a complex RF or data-converter block.
+## Macro release contract
 
-1. MOS operating-point / model smoke test.
-2. Current mirror.
-3. Differential pair.
-4. Common-source amplifier.
-5. Two-stage op-amp or OTA.
-6. Bandgap/reference example where the PDK provides appropriate devices/models.
-7. Simple ring oscillator or comparator for mixed-signal timing interaction.
-8. One analog macro integrated as a black-box physical macro into a tiny LibreLane digital top level.
+An analog macro promoted into a large digital SoC must publish the applicable views under one immutable release identity:
 
-Each design should have pre-layout and post-layout expected-metric envelopes, DRC/LVS requirements, and explicit corner/model coverage.
+- GDS/OASIS
+- LEF abstract
+- schematic/source SPICE/CDL
+- extracted SPICE
+- Verilog black box/behavioral model
+- Liberty model where meaningful
+- SDC/interface assumptions
+- Verilog-A/real-number behavioral model where useful
+- supply/voltage-domain metadata
+- pin/load/jitter/noise characterization
+- placement/routing/substrate keepouts or sensitive-region metadata
 
-## Mixed-signal digital integration
+The mixed-signal top level must reject inconsistent view revisions.
 
-The digital flow must never depend on transistor-level analog internals for normal place-and-route. Each qualified analog macro should publish the views needed by its consumers:
+## PDK targets
 
-```text
-analog source views:
-  xschem schematic
-  SPICE/CDL
-  extracted SPICE
+SKY130A is the first analog compatibility platform because of its existing open analog ecosystem. IHP SG13G2 is the first RF-capable mixed-signal reference because its open PDK publishes circuit, layout, Verilog-A, digital and EM tool collateral in one process kit.
 
-physical views:
-  GDS/OASIS
-  LEF abstract
+## Qualification principle
 
-system/digital views:
-  Verilog black box or behavioral model
-  Liberty timing/power model when meaningful
-  SDC/interface constraints
-  pin/power/voltage-domain metadata
-```
-
-A mixed-signal release manifest must assert that all of these views correspond to the same analog IP revision.
-
-## Simulation policy
-
-ngspice is the baseline simulator because of its broad open-PDK usage. Xyce should be maintained as a second lane where its device/model support is adequate, especially for larger sweeps or parallel simulation.
-
-A simulator result is accepted only if the manifest records:
-
-- simulator build/revision
-- compact-model set and digest
-- PDK corner
-- temperature
-- supply conditions
-- analysis type and tolerances
-- generated netlist digest
-- convergence status
-- measured outputs/specification evaluation
-
-Simulation convergence is not equivalent to circuit correctness.
-
-## DRC/LVS policy
-
-A layout is not qualified until:
-
-- required DRC decks report clean or explicitly waived results,
-- LVS matches the intended schematic/netlist under the documented device mapping,
-- extracted parasitics are generated from the same physical revision,
-- post-layout simulations use that extracted view.
-
-DRC and LVS reports are first-class evidence artifacts.
-
-## Characterization policy
-
-CACE should provide machine-readable specification tests where practical. Tests should cover operating corners, temperature, supply variation, and parameter sweeps supported by the PDK/model set.
-
-For analog research, Monte Carlo/mismatch/yield testing may be added only when the PDK provides models suitable for that purpose. Do not fabricate statistical confidence from incomplete model support.
-
-## IHP SG13G2 lane
-
-IHP SG13G2 is a particularly useful analog/mixed/RF validation platform because its open PDK documents Xschem, ngspice, Xyce, KLayout, Magic, Netgen, Verilog-A/model tooling, parasitics, and digital LibreLane/OpenROAD collateral. This gives `asic-flow` a process where analog and digital views can be exercised under one openly documented PDK family.
-
-## SKY130 lane
-
-SKY130 remains useful for broad ecosystem compatibility and existing open-source analog examples/templates. Its role in this project is infrastructure and integration validation rather than a claim about advanced-node analog capability.
-
-## Future research lanes
-
-After the manual/scripted flow is stable, investigate:
-
-- parameterized analog generators,
-- BAG/ALIGN-style schematic/layout generation,
-- optimization-driven sizing,
-- surrogate-model assisted design-space exploration,
-- incremental extraction and characterization caches,
-- automated analog macro abstraction generation,
-- mixed-signal behavioral model generation,
-- RF/EM co-simulation,
-- analog-aware floorplanning constraints for OpenROAD.
-
-Any learned or optimization-driven method must be checked against actual SPICE/physical verification and must retain deterministic fallback/reference runs.
-
-## Initial analog acceptance gates
-
-- **ANA-01** Pin analog tool versions and add them to the resolved-toolchain manifest.
-- **ANA-02** Provision and inventory one analog-capable PDK/model set.
-- **ANA-03** Run an Xschem → ngspice schematic smoke test.
-- **ANA-04** Run the same supported circuit in Xyce where models permit and compare key measurements.
-- **ANA-05** Qualify OpenVAF/OSDI model compilation for a PDK that requires it.
-- **ANA-06** Complete custom layout of a small analog block.
-- **ANA-07** Obtain clean DRC and LVS.
-- **ANA-08** Extract parasitics and pass post-layout simulation/spec checks.
-- **ANA-09** Add CACE characterization with machine-readable pass/fail metrics.
-- **ANA-10** Publish a digital integration view and place the analog macro in a tiny LibreLane top level.
-- **ANA-11** Verify top-level GDS/LVS/view consistency for that mixed-signal fixture.
-- **ANA-12** Repeat the qualification on a second analog-capable PDK before claiming generality.
-
-No ANA task is accepted based solely on configuration presence; each requires retained execution evidence.
+Schematic simulation alone is never sufficient. An analog block is qualified only after the required physical verification, extraction, post-layout simulation and specification checks have passed for the declared process/model envelope.

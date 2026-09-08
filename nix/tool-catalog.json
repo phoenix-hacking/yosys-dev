@@ -1,0 +1,344 @@
+{
+  "librelane": {
+    "kind": "python",
+    "package_candidates": [
+      [
+        "python3",
+        "pkgs",
+        "librelane"
+      ]
+    ],
+    "module": "librelane",
+    "programs": [
+      "librelane"
+    ]
+  },
+  "yosys": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "yosys"
+      ]
+    ],
+    "programs": [
+      "yosys"
+    ]
+  },
+  "abc": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "yosys"
+      ]
+    ],
+    "programs": [
+      "yosys-abc"
+    ]
+  },
+  "opensta": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "opensta"
+      ]
+    ],
+    "programs": [
+      "sta"
+    ]
+  },
+  "openroad": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "openroad"
+      ]
+    ],
+    "programs": [
+      "openroad"
+    ]
+  },
+  "klayout": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "klayout"
+      ]
+    ],
+    "programs": [
+      "klayout"
+    ]
+  },
+  "magic": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "magic"
+      ]
+    ],
+    "programs": [
+      "magic"
+    ]
+  },
+  "netgen": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "netgen"
+      ]
+    ],
+    "programs": [
+      "netgen"
+    ]
+  },
+  "verilator": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "verilator"
+      ]
+    ],
+    "programs": [
+      "verilator"
+    ]
+  },
+  "iverilog": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "iverilog"
+      ]
+    ],
+    "programs": [
+      "iverilog",
+      "vvp"
+    ]
+  },
+  "eqy": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "yosys-eqy"
+      ]
+    ],
+    "programs": [
+      "eqy"
+    ]
+  },
+  "sby": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "yosys-sby"
+      ]
+    ],
+    "programs": [
+      "sby"
+    ]
+  },
+  "ciel": {
+    "kind": "python",
+    "package_candidates": [
+      [
+        "python3",
+        "pkgs",
+        "ciel"
+      ]
+    ],
+    "module": "ciel",
+    "programs": [
+      "ciel"
+    ]
+  },
+  "xschem": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "xschem"
+      ]
+    ],
+    "programs": [
+      "xschem"
+    ]
+  },
+  "ngspice": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "ngspice"
+      ]
+    ],
+    "programs": [
+      "ngspice"
+    ]
+  },
+  "xyce": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "xyce"
+      ]
+    ],
+    "programs": [
+      "Xyce"
+    ]
+  },
+  "openvaf-reloaded": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "openvaf-reloaded"
+      ]
+    ],
+    "programs": [
+      "openvaf"
+    ]
+  },
+  "cace": {
+    "kind": "python",
+    "package_candidates": [
+      [
+        "python3",
+        "pkgs",
+        "cace"
+      ]
+    ],
+    "module": "cace",
+    "programs": [
+      "cace"
+    ]
+  },
+  "gdsfactory": {
+    "kind": "python",
+    "package_candidates": [
+      [
+        "python3",
+        "pkgs",
+        "gdsfactory"
+      ]
+    ],
+    "module": "gdsfactory",
+    "programs": []
+  },
+  "openems": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "openems"
+      ]
+    ],
+    "programs": [
+      "openEMS"
+    ]
+  },
+  "palace": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "palace"
+      ]
+    ],
+    "programs": [
+      "palace"
+    ]
+  },
+  "scikit-rf": {
+    "kind": "python",
+    "package_candidates": [
+      [
+        "python3",
+        "pkgs",
+        "scikit-rf"
+      ]
+    ],
+    "module": "skrf",
+    "programs": []
+  },
+  "cocotb": {
+    "kind": "python",
+    "package_candidates": [
+      [
+        "python3",
+        "pkgs",
+        "cocotb"
+      ]
+    ],
+    "module": "cocotb",
+    "programs": [
+      "cocotb-config"
+    ],
+    "upstream": "https://github.com/cocotb/cocotb"
+  },
+  "mcy": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "mcy"
+      ]
+    ],
+    "programs": [
+      "mcy"
+    ],
+    "upstream": "https://github.com/YosysHQ/mcy"
+  },
+  "fusesoc": {
+    "kind": "python",
+    "package_candidates": [
+      [
+        "fusesoc"
+      ]
+    ],
+    "module": "fusesoc",
+    "programs": [
+      "fusesoc"
+    ],
+    "upstream": "https://github.com/olofk/fusesoc"
+  },
+  "edalize": {
+    "kind": "python",
+    "package_candidates": [
+      [
+        "python3",
+        "pkgs",
+        "edalize"
+      ]
+    ],
+    "module": "edalize",
+    "programs": [],
+    "upstream": "https://github.com/olofk/edalize"
+  },
+  "perf": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "perf"
+      ]
+    ],
+    "programs": [
+      "perf"
+    ],
+    "upstream": "https://perfwiki.github.io/"
+  },
+  "heaptrack": {
+    "kind": "native",
+    "package_candidates": [
+      [
+        "heaptrack"
+      ]
+    ],
+    "programs": [
+      "heaptrack",
+      "heaptrack_print"
+    ],
+    "upstream": "https://invent.kde.org/sdk/heaptrack"
+  },
+  "hotspot-thermal": {
+    "kind": "native",
+    "package_candidates": [],
+    "programs": [
+      "hotspot"
+    ],
+    "upstream": "https://github.com/uvahotspot/HotSpot",
+    "source_pin": "hotspot-thermal",
+    "packaging_note": "Enable the thermal extension for the project HotSpot derivation; pkgs.hotspot is a different KDE application."
+  }
+}

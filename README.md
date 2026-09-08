@@ -1,304 +1,178 @@
-yosys – Yosys Open SYnthesis Suite
-===================================
+# ASIC Flow
 
-This is a framework for RTL synthesis tools. It currently has
-extensive Verilog-2005 support and provides a basic set of
-synthesis algorithms for various application domains.
+`asic-flow` is the top-level open-source ASIC development environment for this project. The long-term target is a unified flow for very large digital SoCs and custom analog/RF circuitry on the same chip.
 
-Yosys is using [sv-elab](https://github.com/povik/sv-elab) and [slang](https://github.com/MikePopoloski/slang) libraries to provide comprehensive SystemVerilog support.
-It supports an (informally defined) synthesizable subset of SystemVerilog in version IEEE 1800-2017 or IEEE 1800-2023.
+It has four first-class domains:
 
-Yosys can be adapted to perform any synthesis job by combining
-the existing passes (algorithms) using synthesis scripts and
-adding additional passes as needed by extending the yosys C++
-code base.
+1. **Digital ASIC** — LibreLane orchestration with the modified Yosys compiler under `components/yosys`, OpenSTA timing, OpenROAD physical implementation, and open physical-verification tools.
+2. **Analog / custom IC** — Xschem, ngspice/Xyce, Verilog-A model support, custom layout, DRC/LVS, extraction and CACE characterization.
+3. **RF / EM** — distributed passives and RF structures using openEMS and/or Palace, with GDSFactory and S-parameter/network analysis support.
+4. **Mixed-signal integration** — immutable analog/RF macro views joined to large digital implementations through explicit physical, timing, voltage, load, jitter, noise and keepout metadata.
 
-Yosys is free software licensed under the ISC license (a GPL
-compatible license that is similar in terms to the MIT license
-or the 2-clause BSD license).
+The repository is flow-first rather than Yosys-first:
 
-Third-party software distributed alongside this software
-is licensed under compatible licenses.
-Please refer to `abc` and `libs` subdirectories for their license terms.
-
-
-Web Site and Other Resources
-============================
-
-More information and documentation can be found on the Yosys web site:
-- https://yosyshq.net/yosys/
-
-If you have any Yosys-related questions, please post them on the Discourse group:
-- https://yosyshq.discourse.group
-
-Documentation from this repository is automatically built and available on Read
-the Docs:
-- https://yosyshq.readthedocs.io/projects/yosys
-
-Users interested in formal verification might want to use the formal
-verification front-end for Yosys, SBY:
-- https://yosyshq.readthedocs.io/projects/sby/
-- https://github.com/YosysHQ/sby
-
-The Yosys blog has news and articles from users:
-- https://blog.yosyshq.com
-
-
-Installation
-============
-
-Yosys is part of the [Tabby CAD Suite](https://www.yosyshq.com/tabby-cad-datasheet) and the [OSS CAD Suite](https://github.com/YosysHQ/oss-cad-suite-build)! The easiest way to use yosys is to install the binary software suite, which contains all required dependencies and related tools.
-
-* [Contact YosysHQ](https://www.yosyshq.com/contact) for a [Tabby CAD Suite](https://www.yosyshq.com/tabby-cad-datasheet) Evaluation License and download link
-* OR go to https://github.com/YosysHQ/oss-cad-suite-build/releases to download the free OSS CAD Suite
-* Follow the [Install Instructions on GitHub](https://github.com/YosysHQ/oss-cad-suite-build#installation)
-
-Make sure to get a Tabby CAD Suite Evaluation License if you need features such as industry-grade SystemVerilog and VHDL parsers!
-
-For more information about the difference between Tabby CAD Suite and the OSS CAD Suite, please visit https://www.yosyshq.com/tabby-cad-datasheet
-
-Many Linux distributions also provide Yosys binaries, some more up to date than others. Check with your package manager!
-
-
-Building from Source
-====================
-
-For more details, and instructions for other platforms, check [building from
-source](https://yosyshq.readthedocs.io/projects/yosys/en/latest/getting_started/installation.html#building-from-source)
-on Read the Docs.
-
-When cloning Yosys, some required libraries are included as git submodules. Make
-sure to call e.g.
-
-	$ git clone https://github.com/YosysHQ/yosys.git
-	$ cd yosys
-	$ git submodule update --init
-
-A C++ compiler with C++20 support is required as well as some standard tools
-such as GNU Flex, GNU Bison (>=3.8), CMake (>=3.28), Make (or other CMake
-generator such as Ninja), and Python (>=3.11). Some additional tools: readline,
-libffi, Tcl and zlib; will be used if available but are optional. Graphviz and
-Xdot are used by the `show` command to display schematics.
-
-For example on Ubuntu Linux 22.04 LTS the following commands will install all
-prerequisites for building yosys:
-
-	$ sudo apt-get install gawk git make python3 lld bison clang flex \
-		libffi-dev libfl-dev libreadline-dev pkg-config tcl-dev zlib1g-dev \
-		graphviz xdot
-
-**NOTE**: By default, Ubuntu 22.04 LTS is limited to CMake 3.22 via `apt`. To
-install a newer version and meet the minimum required for building Yosys, use
-`sudo snap install cmake --classic`.
-
-CMake is used for build configuration, and requires a separate build directory:
-
-	$ cmake -B build .
-
-Once generated, available build variables can be inspected and modified with
-`ccmake` or opening the generated `build/CMakeCache.txt` file:
-
-	$ ccmake build              #..or..
-	$ vi build/CMakeCache.txt
-
-When setting one-off variables, CMake provides the `-D <var>=<value>` command
-line option. For example, disabling zlib support:
-
-	$ cmake -B build . -DYOSYS_WITHOUT_ZLIB=ON
-
-For a more persistent configuration, we recommend creating and using a
-`CMakeUserPresets.json` file in the root `yosys` directory. Below is an example
-file which enables ccache and sets the default compiler to clang when calling
-`cmake --preset clang`:
-
-```json
-{
-	"version": 1,
-	"configurePresets": [
-		{
-			"name": "default",
-			"binaryDir": "build",
-			"generator": "Unix Makefiles",
-			"cacheVariables": {
-				"CMAKE_C_COMPILER": "clang",
-				"CMAKE_CXX_COMPILER": "clang++",
-				"YOSYS_COMPILER_LAUNCHER": "ccache"
-			}
-		}
-	]
-}
+```text
+asic-flow/
+├── README.md
+├── SOFTWARE_REQUIREMENTS.md
+├── TOOLCHAIN_MATRIX.md
+├── STACK_EXECUTION_PLAN.md
+├── STACK_PROGRESS.md
+├── MIXED_SIGNAL_EXECUTION_PLAN.md
+├── ANALOG_FLOW.md
+├── toolchain.lock.json
+├── flake.nix
+├── nix/
+├── components/
+│   └── yosys/                  # pinned Yosys fork
+├── flows/
+│   ├── digital/
+│   ├── analog/
+│   ├── rf/
+│   └── mixed_signal/
+├── integrations/
+│   ├── librelane/
+│   └── analog/
+├── verification/
+├── benchmarks/
+├── platforms/
+├── schemas/
+├── scripts/
+├── tests/
+└── evidence/
 ```
 
-Once generated, the build system can be run as follows:
+## Digital lane
 
-	$ cmake --build build       #..or..
-	$ cd build
-	$ cmake --build .
+```text
+RTL / SystemVerilog / constraints / macros
+        ↓
+components/yosys
+        ↓
+mapped netlist + synthesis metadata
+        ↓
+LibreLane
+        ↓
+OpenSTA / OpenROAD
+        ↓
+KLayout / Magic / Netgen
+        ↓
+GDS + timing + physical-verification evidence
+```
 
-To quickly install Yosys with the default settings:
+The digital compiler work remains centered on Yosys: incremental compilation, artifact reuse, dependency/invalidation tracking, maintained analyses, ASIC mapping, timing/physical-aware synthesis decisions, proof obligations, and QoR improvement for CPU/GPU/DSP/accelerator/NoC-class designs.
 
-	$ cmake -B build . -DCMAKE_BUILD_TYPE=Release
-	$ cmake --build build --config Release --parallel $(nproc)
-	$ sudo cmake --install build --strip
+## Analog lane
 
-Tests are located in the tests subdirectory and can be executed using the `test`
-target. Note that you need gawk, a recent version of iverilog, and gtest.
-Execute tests via:
+```text
+Xschem
+  ↓
+ngspice / Xyce
+  ↓
+OpenVAF/OSDI or PDK-specific Verilog-A model path
+  ↓
+Magic / KLayout custom layout
+  ↓
+DRC + Netgen/KLayout LVS + extraction
+  ↓
+post-layout simulation
+  ↓
+CACE characterization
+  ↓
+qualified analog macro views
+```
 
-	$ cmake --build build --target test --parallel $(nproc)
+This lane covers ADCs, DACs, PLL analog cores, bandgaps/references, LNAs, mixers, sensor interfaces, power-management blocks and other custom circuits. Analog blocks are not synthesized by Yosys.
 
+## RF / EM lane
 
-Getting Started
-===============
+```text
+parameterized/custom RF geometry
+  ↓
+GDSFactory / PDK layout
+  ↓
+openEMS and/or Palace
+  ↓
+S-parameters / impedance / field results
+  ↓
+scikit-rf and circuit-model extraction
+  ↓
+ngspice/Xyce verification
+```
 
-Yosys can be used with the interactive command shell, with
-synthesis scripts or with command line arguments. Let's perform
-a simple synthesis job using the interactive command shell:
+This lane is intended for structures such as inductors, transformers/baluns, transmission lines and package-/substrate-sensitive RF interconnect.
 
-	$ ./build/yosys
-	yosys>
+## Mixed-signal integration
 
-the command ``help`` can be used to print a list of all available
-commands and ``help <command>`` to print details on the specified command:
+A complex SoC can therefore combine multi-million-cell digital logic with custom analog/RF macros. The digital flow sees those macros through explicit abstract views such as LEF/GDS, Verilog black boxes/behavioral models, Liberty/SDC where meaningful, SPICE/CDL, voltage-domain metadata and physical keepouts.
 
-	yosys> help help
+The baseline verification model is hierarchical: qualify each analog/RF macro independently, then integrate the exact qualified revision into the digital/top-level assembly. Full proprietary-style continuous-time/event-driven AMS co-simulation is a future research lane, not a current claim.
 
-reading and elaborating the design using the Verilog frontend:
+See:
 
-	yosys> read -sv tests/simple/fiedler-cooley.v
-	yosys> hierarchy -top up3down5
+- [TOOLCHAIN_MATRIX.md](TOOLCHAIN_MATRIX.md) — complete capability/tool checklist and qualification state.
+- [SOFTWARE_REQUIREMENTS.md](SOFTWARE_REQUIREMENTS.md) — stack ownership and release contract.
+- [flows/digital/README.md](flows/digital/README.md)
+- [flows/analog/README.md](flows/analog/README.md)
+- [flows/rf/README.md](flows/rf/README.md)
+- [flows/mixed_signal/README.md](flows/mixed_signal/README.md)
+- [verification/README.md](verification/README.md)
 
-writing the design to the console in the RTLIL format used by Yosys
-internally:
+## Reference platforms
 
-	yosys> write_rtlil
+- **SKY130A** — initial digital RTL-to-GDS and open analog compatibility bring-up.
+- **IHP SG13G2** — first RF-capable mixed-signal reference target because its open PDK provides analog/mixed/RF, Verilog-A, GDSFactory, openEMS/Palace and LibreLane/OpenROAD collateral.
+- **GF180MCU** — later portability target for open mixed-signal work.
 
-convert processes (``always`` blocks) to netlist elements and perform
-some simple optimizations:
+## Pinned digital starting point
 
-	yosys> proc; opt
+- LibreLane: `3.0.14`, commit `f24e0ea5db2260719e9a0c7d51d07db74a87fa23`
+- Candidate Yosys component: `phoenix-hacking/yosys-dev` at `43bbfbf71cba0435ebf806e9be8a888027c2903d`
+- Stock Yosys control: upstream commit `435977e97008578a4532da60e70f75b5e88d076d`
 
-display design netlist using ``xdot``:
+## Build and reproducibility
 
-	yosys> show
+```sh
+git clone --branch codex/librelane-stack-bootstrap-20260907 https://github.com/phoenix-hacking/yosys-dev.git asic-flow
+cd asic-flow
+python3 scripts/stack.py check
+python3 scripts/stack.py bootstrap
+python3 -m unittest discover -s tests -v
+```
 
-the same thing using ``gv`` as postscript viewer:
+The stack keeps separate reference/stock/candidate digital profiles. Analog and RF tools require the same discipline: immutable tool identity, PDK/model identity, configuration digest and retained evidence.
 
-	yosys> show -format ps -viewer gv
+Follow [docs/BRINGUP.md](docs/BRINGUP.md) for Nix resolution, tool audits, PDK
+recording and the first qualification runs. `nix/tool-catalog.json` maps the
+required tool names to actual package attributes, executables and Python modules.
+`phoenix-analog-tool-audit --lane all` exits nonzero for missing or unusable tools;
+an available package is still not a qualified design flow.
 
-translating netlist to gate logic and perform some simple optimizations:
+[docs/TOOL_EXTENSIONS.md](docs/TOOL_EXTENSIONS.md) adds opt-in workflows for
+cocotb/MCY verification, FuseSoC/Edalize IP builds, perf/heaptrack compiler
+profiling and HotSpot thermal analysis. Each has an invocation and acceptance
+check. Select shells such as `reference-verification` or `candidate-profiling`.
 
-	yosys> techmap; opt
+## Ownership boundary
 
-write design netlist to a new Verilog file:
+- **Yosys:** synthesis/compiler work.
+- **LibreLane:** digital flow orchestration and state handoff.
+- **OpenSTA:** timing semantics.
+- **OpenROAD:** digital physical implementation and physical context.
+- **Xschem/ngspice/Xyce/OpenVAF:** analog schematic/model/simulation path.
+- **Magic/KLayout/Netgen:** custom-layout physical verification and interchange.
+- **CACE:** analog characterization/regression.
+- **openEMS/Palace/scikit-rf:** RF/EM characterization path.
+- **Top-level `asic-flow`:** toolchain locking, PDK integration, mixed-signal assembly, benchmarks, evidence and release qualification.
 
-	yosys> write_verilog synth.v
+## Current status
 
-or using a simple synthesis script:
+This remains a bootstrap, not a qualified tapeout environment. Digital Nix/LibreLane/Pyosys builds, PDK qualification, synthesis/formal/place-route evidence, analog model/simulator qualification, analog DRC/LVS/extraction, RF/EM solver packaging and mixed-signal assembly tests remain explicit gates.
 
-	$ cat synth.ys
-	read -sv tests/simple/fiedler-cooley.v
-	hierarchy -top up3down5
-	proc; opt; techmap; opt
-	write_verilog synth.v
-
-	$ ./yosys synth.ys
-
-If ABC is enabled in the Yosys build configuration and a cell library is given
-in the liberty file ``mycells.lib``, the following synthesis script will
-synthesize for the given cell library:
-
-	# read design
-	read -sv tests/simple/fiedler-cooley.v
-	hierarchy -top up3down5
-
-	# the high-level stuff
-	proc; fsm; opt; memory; opt
-
-	# mapping to internal cell library
-	techmap; opt
-
-	# mapping flip-flops to mycells.lib
-	dfflibmap -liberty mycells.lib
-
-	# mapping logic to mycells.lib
-	abc -liberty mycells.lib
-
-	# cleanup
-	clean
-
-If you do not have a liberty file but want to test this synthesis script,
-you can use the file ``examples/cmos/cmos_cells.lib`` from the yosys sources
-as simple example.
-
-Liberty file downloads for and information about free and open ASIC standard
-cell libraries can be found here:
-
-- http://www.vlsitechnology.org/html/libraries.html
-- http://www.vlsitechnology.org/synopsys/vsclib013.lib
-
-The command ``synth`` provides a good default synthesis script (see
-``help synth``):
-
-	read -sv tests/simple/fiedler-cooley.v
-	synth -top up3down5
-
-	# mapping to target cells
-	dfflibmap -liberty mycells.lib
-	abc -liberty mycells.lib
-	clean
-
-The command ``prep`` provides a good default word-level synthesis script, as
-used in SMT-based formal verification.
-
-
-Additional information
-======================
-
-The ``read_verilog`` command, used by default when calling ``read`` with Verilog
-source input, does not perform syntax checking.  You should instead lint your
-source with another tool such as
-[Verilator](https://www.veripool.org/verilator/) first, e.g. by calling
-``verilator --lint-only``.
-
-
-Building the documentation
-==========================
-
-Note that there is no need to build the manual if you just want to read it.
-Simply visit https://yosys.readthedocs.io/en/latest/ instead.
-If you're offline, you can read the sources, replacing `.../en/latest`
-with `docs/source`.
-
-In addition to those packages listed above for building Yosys from source, the
-following are used for building the website:
-
-	$ sudo apt install pdf2svg faketime
-
-Or for MacOS, using homebrew:
-
-	$ brew install pdf2svg libfaketime
-
-PDFLaTeX, included with most LaTeX distributions, is also needed during the
-build process for the website.  Or, run the following:
-
-	$ sudo apt install texlive-latex-base texlive-latex-extra latexmk
-
-Or for MacOS, using homebrew:
-
-	$ brew install basictex
-	$ sudo tlmgr update --self
-	$ sudo tlmgr install collection-latexextra latexmk tex-gyre
-
-The Python package, Sphinx, is needed along with those listed in
-`docs/source/requirements.txt`:
-
-	$ pip install -U sphinx -r docs/source/requirements.txt
-
-DOCS (e.g.)
-
-	$ cmake --build build --target docs-html --parallel
-
-This will build/rebuild yosys as necessary before generating the website
-documentation from the yosys help commands.  To build for pdf instead of html,
-use the `docs-latexpdf` target.
+The prepared source is on draft PR #1, branch
+`codex/librelane-stack-bootstrap-20260907`; `main` still contains the compiler
+tree until that PR is merged. The GitHub remote is currently `yosys-dev`.
+The connector excludes repository-administration access, so the owner must run
+the rename in [docs/REPOSITORY_RENAME.md](docs/REPOSITORY_RENAME.md). Renaming
+does not merge the PR. Existing immutable compiler source URLs are retained until
+the remote rename is verified; GitHub redirects them after a rename.

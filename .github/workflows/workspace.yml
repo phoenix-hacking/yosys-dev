@@ -1,0 +1,27 @@
+name: ASIC workspace offline checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      SOURCE_URL: ${{ github.server_url }}/${{ github.repository }}.git
+      SOURCE_SHA: ${{ github.sha }}
+    steps:
+      - name: Checkout public source without external actions
+        run: |
+          git init work
+          git -C work remote add origin "$SOURCE_URL"
+          git -C work fetch --depth=1 origin "$SOURCE_SHA"
+          git -C work checkout --detach FETCH_HEAD
+      - name: Static and unit tests (not synthesis qualification)
+        run: |
+          cd work
+          python3 scripts/stack.py check
+          python3 -m compileall -q scripts integrations verification/cocotb tests
+          python3 -m unittest discover -s tests -v

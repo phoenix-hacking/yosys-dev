@@ -1,9 +1,0 @@
-yosys_pass(opt_dff
-	opt_dff.cc
-	simple.cc
-	constbits.cc
-	eqbits.cc
-	opt_dff.h
-	REQUIRES
-		simplemap
-)

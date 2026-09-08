@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "librelane-plugin-phoenix"
+version = "0.1.0"
+description = "Audited, pass-through LibreLane synthesis integration for the Phoenix ASIC workspace"
+requires-python = ">=3.10"
+dependencies = ["librelane==3.0.14"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["librelane_plugin_phoenix*"]

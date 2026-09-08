@@ -1,0 +1,25 @@
+[options]
+size 50
+seed 4201
+tags DETECTED SURVIVED
+
+[script]
+read_verilog top.v
+prep -top mixed_top
+
+[files]
+top.v
+
+[logic]
+if result("simulation") == "FAIL":
+    tag("DETECTED")
+else:
+    tag("SURVIVED")
+
+[report]
+print("Detected: %d; survived/unclassified: %d" % (tags("DETECTED"), tags("SURVIVED")))
+print("Survivors require equivalence triage; no coverage percentage is claimed.")
+
+[test simulation]
+expect PASS FAIL
+run bash "$ASIC_FLOW_ROOT/verification/mcy/test_sim.sh"

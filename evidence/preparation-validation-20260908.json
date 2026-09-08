@@ -1,0 +1,113 @@
+{
+  "branch": "codex/librelane-stack-bootstrap-20260907",
+  "commands": [
+    {
+      "command": "python3 scripts/stack.py check",
+      "return_code": 0,
+      "status": "PASS"
+    },
+    {
+      "command": "python3 -m compileall -q scripts integrations tests",
+      "return_code": 0,
+      "status": "PASS"
+    },
+    {
+      "command": "python3 -m unittest discover -s tests -v",
+      "failed": 0,
+      "passed": 53,
+      "return_code": 0,
+      "skipped": 2,
+      "status": "PASS_WITH_EXPLICIT_SKIPS",
+      "tests_run": 55
+    },
+    {
+      "command": "git diff --check",
+      "return_code": 0,
+      "status": "PASS"
+    },
+    {
+      "command": "git diff --cached --check",
+      "return_code": 0,
+      "status": "PASS"
+    }
+  ],
+  "compiler_bootstrap": {
+    "command": "python3 scripts/stack.py bootstrap",
+    "head": "43bbfbf71cba0435ebf806e9be8a888027c2903d",
+    "repeated_invocation": "PASS",
+    "status": "PASS",
+    "submodules": {
+      "abc": "a51bf4a7bb38ce06ea3a544b1463b40832213917",
+      "frontends/slang/lib": "b6e440d6a2586b93c2a43da676c207c8c2a15778",
+      "frontends/slang/lib/third_party/fmt": "1be298e1bd68957e4cd352e1f676f00e07dcfb57",
+      "frontends/slang/lib/third_party/slang": "e222e7dc0250231312f14c37d47404a49df00fe2",
+      "libs/boost_regex": "2b3ac0834f31086c6e3c0e0ceb8516e427d5c39d",
+      "libs/cxxopts": "4bf61f08697b110d9e3991864650a405b3dd515d",
+      "libs/fmt": "a00f82c6b66dcae15503ba19c1598b2733057dea",
+      "libs/slang": "e222e7dc0250231312f14c37d47404a49df00fe2",
+      "libs/symfpu": "5d5e50867437fe5cabd6ab5aad3b3808ec86701f",
+      "libs/tomlplusplus": "a43ad3787293f4a46b1d70c0924b5a25d10e79fc"
+    },
+    "working_tree": "CLEAN"
+  },
+  "compiler_source_changed": false,
+  "date": "2026-09-08",
+  "eda_validated": false,
+  "environment": {
+    "git": "/usr/local/bin/git",
+    "librelane": null,
+    "nix": null,
+    "python": "3.12.13",
+    "yosys": null
+  },
+  "new_flow_or_compiler_tasks_accepted": [],
+  "not_run": [
+    "Nix resolution/evaluation/build and real package audit",
+    "Live LibreLane/Pyosys tests (two explicit skips)",
+    "Yosys build and upstream compiler regressions",
+    "SKY130A or IHP SG13G2 PDK provisioning/qualification",
+    "RTL synthesis, EQY equivalence, placement, routing, timing or PPA acceptance",
+    "Analog schematic/model/DRC/LVS/extraction/post-layout/CACE qualification",
+    "openEMS/Palace runs and RF convergence/circuit correlation",
+    "Mixed-signal macro views and top-level assembly"
+  ],
+  "recorded_at": "2026-09-08T01:36:25.522499+00:00",
+  "rename": {
+    "owner_command": "gh repo rename asic-flow --repo phoenix-hacking/yosys-dev --yes",
+    "reason": "GitHub connector excludes repository-administration access; no authenticated administrative CLI is available.",
+    "status": "BLOCKED",
+    "target": "phoenix-hacking/asic-flow"
+  },
+  "schema_version": 1,
+  "scope": "repository preparation and source bootstrap; no EDA qualification",
+  "source_parent": "ad39cce779264d26e9620baca776b3f92972b3db",
+  "source_pins": {
+    "librelane": {
+      "release": "3.0.14",
+      "repository": "librelane/librelane",
+      "revision": "f24e0ea5db2260719e9a0c7d51d07db74a87fa23",
+      "upstream_lock_blob": "7852bd609d45972bf7fad246b3073c8d75349f40"
+    },
+    "yosys_candidate": {
+      "repository": "phoenix-hacking/yosys-dev",
+      "revision": "43bbfbf71cba0435ebf806e9be8a888027c2903d",
+      "submodules": true
+    },
+    "yosys_stock": {
+      "repository": "YosysHQ/yosys",
+      "revision": "435977e97008578a4532da60e70f75b5e88d076d",
+      "submodules": true
+    }
+  },
+  "starting_regression": {
+    "errors": 8,
+    "skipped": 2,
+    "static_check": "FAILED: Unsupported lock schema or platform",
+    "tests_run": 35
+  },
+  "validation_notes": [
+    "Twenty additional offline regression tests cover bootstrap safety, Nix follows/revision checks and required-tool audit failures.",
+    "Pure Nix discovery evaluation fixture is supplied but was not executed: nix-instantiate is unavailable.",
+    "Historical bootstrap evidence is retained separately and does not attest subsequent commits."
+  ]
+}

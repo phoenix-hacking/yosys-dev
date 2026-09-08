@@ -1,0 +1,21 @@
+CAPI=2:
+name: asic-flow:benchmarks:mixed:0.1.0
+description: Revision A bring-up IP with a portable self-checking simulation target
+filesets:
+  rtl:
+    files: [A/top.v]
+    file_type: verilogSource
+  testbench:
+    files: [sim/tb.v]
+    file_type: verilogSource
+targets:
+  default:
+    filesets: [rtl]
+    toplevel: mixed_top
+  sim:
+    default_tool: icarus
+    tools:
+      icarus:
+        iverilog_options: [-g2012]
+    filesets: [rtl, testbench]
+    toplevel: mixed_tb

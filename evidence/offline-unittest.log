@@ -1,0 +1,43 @@
+test_exactly_one_synthesis_replacement (test_live_plugin.LivePluginTests.test_exactly_one_synthesis_replacement) ... skipped 'Requires the pinned LibreLane environment; not an EDA pass'
+test_flow_registration (test_live_plugin.LivePluginTests.test_flow_registration) ... skipped 'Requires the pinned LibreLane environment; not an EDA pass'
+test_command_preserves_config_and_extra (test_workspace.CommandTests.test_command_preserves_config_and_extra) ... ok
+test_duplicate_y_fails (test_workspace.CommandTests.test_duplicate_y_fails) ... ok
+test_missing_script_fails (test_workspace.CommandTests.test_missing_script_fails) ... ok
+test_missing_separator_fails (test_workspace.CommandTests.test_missing_separator_fails) ... ok
+test_fixture_contains_actual_edit (test_workspace.ConfigurationTests.test_fixture_contains_actual_edit) ... ok
+test_generated_flake_matches (test_workspace.ConfigurationTests.test_generated_flake_matches) ... ok
+test_lock_is_pinned (test_workspace.ConfigurationTests.test_lock_is_pinned) ... ok
+test_missing_build_lock_fails (test_workspace.ConfigurationTests.test_missing_build_lock_fails) ... ok
+test_offline_check_does_not_claim_eda (test_workspace.ConfigurationTests.test_offline_check_does_not_claim_eda) ... ok
+test_reject_false_incremental_claim (test_workspace.ConfigurationTests.test_reject_false_incremental_claim) ... ok
+test_reject_moving_revision (test_workspace.ConfigurationTests.test_reject_moving_revision) ... ok
+test_unsupported_revision (test_workspace.ConfigurationTests.test_unsupported_revision) ... ok
+test_updated_rtl_is_selected (test_workspace.ConfigurationTests.test_updated_rtl_is_selected) ... ok
+test_wrong_profile_fails (test_workspace.ConfigurationTests.test_wrong_profile_fails) ... ok
+test_wrong_revision_fails (test_workspace.ConfigurationTests.test_wrong_revision_fails) ... ok
+test_changed_source_rejected (test_workspace.ExportTests.test_changed_source_rejected) ... ok
+test_existing_destination_rejected (test_workspace.ExportTests.test_existing_destination_rejected) ... ok
+test_export_has_pinned_gitlink (test_workspace.ExportTests.test_export_has_pinned_gitlink) ... ok
+test_export_manifest_integrity (test_workspace.ExportTests.test_export_manifest_integrity) ... ok
+test_manifest_runtime_path_rejected (test_workspace.ExportTests.test_manifest_runtime_path_rejected) ... ok
+test_manifest_traversal_rejected (test_workspace.ExportTests.test_manifest_traversal_rejected) ... ok
+test_nested_destination_rejected (test_workspace.ExportTests.test_nested_destination_rejected) ... ok
+test_parent_git_repository_rejected (test_workspace.ExportTests.test_parent_git_repository_rejected) ... ok
+test_external_binding_rejected (test_workspace.IdentityTests.test_external_binding_rejected) ... ok
+test_matching_embedded (test_workspace.IdentityTests.test_matching_embedded) ... ok
+test_selected_binding_accepted (test_workspace.IdentityTests.test_selected_binding_accepted) ... ok
+test_unknown_schema_rejected (test_workspace.IdentityTests.test_unknown_schema_rejected) ... ok
+test_wrong_binary_rejected (test_workspace.IdentityTests.test_wrong_binary_rejected) ... ok
+test_cycle_rejected (test_workspace.InventoryTests.test_cycle_rejected) ... ok
+test_empty_platform_rejected (test_workspace.InventoryTests.test_empty_platform_rejected) ... ok
+test_external_file_content_included (test_workspace.InventoryTests.test_external_file_content_included) ... ok
+test_platform_changes_invalidate (test_workspace.InventoryTests.test_platform_changes_invalidate) ... ok
+test_relocated_platform_same_digest (test_workspace.InventoryTests.test_relocated_platform_same_digest) ... ok
+
+----------------------------------------------------------------------
+Ran 35 tests in 0.027s
+
+OK (skipped=2)
+Created independent workspace and staged files: /tmp/tmp3k5mmy8_/standalone
+No remote repository was created and nothing was pushed.
+Review staged changes, commit with your configured Git identity, then create/push asic-stack.

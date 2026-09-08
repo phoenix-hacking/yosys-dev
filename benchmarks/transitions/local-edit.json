@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "id": "mixed-select-A-to-B",
+  "gold_revision": "B",
+  "before": "benchmarks/designs/mixed/A/top.v",
+  "after": "benchmarks/designs/mixed/B/top.v",
+  "change": "Change the non-selected arithmetic operand from a to b; multiplication and counter RTL remain unchanged.",
+  "lanes_available": ["reference-clean", "stock-clean", "candidate-clean"],
+  "lanes_planned": ["candidate-incremental-full-physical", "candidate-incremental-physical-eco"],
+  "warning": "Functional A-to-B edit: B must be proved against B RTL. This fixture does not demonstrate module-level reuse because it is a single module."
+}

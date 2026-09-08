@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "pdk": "sky130A",
+  "standard_cell_library": "sky130_fd_sc_hd",
+  "revision": null,
+  "status": "selected-not-provisioned",
+  "policy": "Provision through Ciel; record an immutable revision and a content inventory before acceptance runs. Do not commit PDK contents."
+}

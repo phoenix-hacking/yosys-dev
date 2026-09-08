@@ -3,17 +3,17 @@
 {
   description = "asic-flow: digital, analog, RF/EM and mixed-signal ASIC development";
   inputs = {
-    librelane.url = "github:librelane/librelane/f24e0ea5db2260719e9a0c7d51d07db74a87fa23";
+    librelane.url = "github:@LIBRELANE_REPO@/@LIBRELANE_REV@";
     yosys-candidate = {
-      url = "git+https://github.com/phoenix-hacking/yosys-dev.git?rev=43bbfbf71cba0435ebf806e9be8a888027c2903d&submodules=1";
+      url = "git+https://github.com/@CANDIDATE_REPO@.git?rev=@CANDIDATE_REV@&submodules=1";
       flake = false;
     };
     yosys-stock = {
-      url = "git+https://github.com/YosysHQ/yosys.git?rev=435977e97008578a4532da60e70f75b5e88d076d&submodules=1";
+      url = "git+https://github.com/@STOCK_REPO@.git?rev=@STOCK_REV@&submodules=1";
       flake = false;
     };
     hotspot-thermal-source = {
-      url = "github:uvahotspot/HotSpot/f18831e48cef5d62580585cca0d7fab6c71bc3cc";
+      url = "github:@HOTSPOT_REPO@/@HOTSPOT_REV@";
       flake = false;
     };
   };

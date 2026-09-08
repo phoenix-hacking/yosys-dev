@@ -1,6 +1,8 @@
 # ASIC Flow Software Requirements
 
-This file defines the high-level software contract for `asic-flow`. The top-level repository is the integration product. It supports both digital and analog/mixed-signal ASIC implementation; Yosys is one component beneath the digital lane.
+This file defines the high-level software contract for `asic-flow`. The top-level repository is the integration product. It supports digital, analog/custom, RF/EM and mixed-signal ASIC implementation; Yosys is one component beneath the digital lane.
+
+See [TOOLCHAIN_MATRIX.md](TOOLCHAIN_MATRIX.md) for the complete capability checklist and qualification state.
 
 ## 1. Supported host
 
@@ -10,9 +12,9 @@ Initial supported bring-up host:
 - Nix >= 2.27 with flakes enabled
 - Git with recursive submodule support
 - Python >= 3.10
-- Sufficient local NVMe space for Nix store paths, PDKs, build trees, caches, SPICE data, and physical-design runs
+- sufficient local NVMe for Nix store paths, PDKs, build trees, caches, SPICE/EM data and physical-design runs
 
-The flow must fail closed when the selected environment cannot prove tool identity.
+The flow must fail closed when the selected environment cannot prove tool/model/PDK identity required by the active lane.
 
 ## 2. Digital flow/orchestration layer
 
@@ -23,50 +25,47 @@ Pinned starting point:
 - LibreLane release: `3.0.14`
 - LibreLane commit: `f24e0ea5db2260719e9a0c7d51d07db74a87fa23`
 
-LibreLane owns flow ordering, configuration/state handoff, step execution, result collection and flow-level metrics for digital implementation.
-
-Project-specific LibreLane code belongs under `integrations/librelane/`.
+LibreLane owns flow ordering, configuration/state handoff, step execution, result collection and flow-level metrics for digital implementation. Project-specific code belongs under `integrations/librelane/`.
 
 ## 3. Digital synthesis layer
 
 Candidate compiler:
 
-- Path: `components/yosys`
-- Repository: `phoenix-hacking/yosys-dev`
-- Pinned bootstrap commit: `43bbfbf71cba0435ebf806e9be8a888027c2903d`
+- path: `components/yosys`
+- repository: `phoenix-hacking/yosys-dev`
+- pinned bootstrap commit: `43bbfbf71cba0435ebf806e9be8a888027c2903d`
 
 Stock comparison compiler:
 
-- Repository: `YosysHQ/yosys`
-- Pinned bootstrap commit: `435977e97008578a4532da60e70f75b5e88d076d`
+- repository: `YosysHQ/yosys`
+- pinned bootstrap commit: `435977e97008578a4532da60e70f75b5e88d076d`
 
-Yosys owns RTL elaboration/synthesis semantics, native incremental compilation, persistent synthesis artifacts, dependency/invalidation tracking, maintained compiler analyses, hierarchy/specialization, memory inference/macro mapping, technology mapping, arithmetic/mux/control candidate generation, synthesis-side timing/physical-context queries, proof obligations, and synthesis provenance.
+Yosys owns RTL elaboration/synthesis semantics, native incremental compilation, persistent synthesis artifacts, dependency/invalidation tracking, maintained compiler analyses, hierarchy/specialization, memory inference/macro mapping, technology mapping, arithmetic/mux/control candidate generation, synthesis-side timing/physical-context queries, proof obligations and synthesis provenance.
 
 The top-level flow must never claim a Yosys improvement when it has silently executed a different native binary or different Pyosys bindings.
 
-## 4. Timing layer
+## 4. Digital timing and physical implementation
 
-OpenSTA is the reference digital timing-analysis semantic engine where feasible. Clean and incremental timing must be comparable on the same updated netlist/parasitics, SDC correspondence must be explicit, and unresolved clocks/endpoints/collections are evidence failures.
-
-## 5. Digital physical implementation layer
+OpenSTA is the reference digital timing semantic engine where feasible. Clean and incremental timing must be comparable on the same updated netlist/parasitics, SDC correspondence must be explicit, and unresolved clocks/endpoints/collections are evidence failures.
 
 OpenROAD is the first-class provider of floorplanning, placement, legalization, sizing/buffering, CTS, routing, parasitics, congestion and physical context. Yosys may consume versioned physical context but must not absorb OpenROAD's placer/router responsibilities.
 
-## 6. Analog and mixed-signal design layer
+## 5. Analog/custom IC design layer
 
-Analog blocks are not passed through Yosys or treated as ordinary standard-cell logic. The initial supported open-source analog lane shall provide:
+Analog blocks are not passed through Yosys or treated as standard-cell logic. The baseline open-source analog lane requires:
 
-- **Xschem** for schematic capture and hierarchical analog/mixed-signal netlist generation.
-- **ngspice** as the baseline SPICE simulator.
-- **Xyce** as a second simulator for larger/parallel or model-specific workloads where supported.
-- **OpenVAF / OSDI** for Verilog-A compact-model compilation where required by the selected PDK and simulator.
-- **Magic and/or KLayout** for custom analog layout, DRC, geometry inspection, and GDS interchange.
-- **Netgen** for LVS.
-- **CACE** for specification-driven analog characterization and regression.
+- **Xschem** — schematic capture and hierarchical netlist generation.
+- **ngspice** — baseline circuit simulator.
+- **Xyce** — second simulator for larger/parallel or model-specific workloads on Linux.
+- **OpenVAF Reloaded / OSDI** — Verilog-A compact-model compilation where required.
+- **Magic and KLayout** — custom layout, geometry inspection, DRC/extraction as supported by the PDK.
+- **Netgen and/or PDK-supported KLayout LVS** — LVS.
+- **CACE** — specification-driven characterization/regression.
+- **GDSFactory** — parameterized layout/PCells and programmatic geometry support.
 
-Optional later tools may include Qucs-S, GDSFactory, BAG/ALIGN-style generators, pygmid/gm-ID analysis, charlib, openEMS, and Palace where they provide measurable value and the PDK supplies usable collateral.
+Optional analog tools may include Qucs-S, Gnucap and pygmid when they provide reproducible value.
 
-Accepted analog flows shall support the standard sequence:
+Accepted analog flows shall support:
 
 ```text
 schematic
@@ -77,32 +76,50 @@ schematic
 → parasitic extraction
 → post-layout simulation
 → characterization/regression
-→ qualified GDS/IP views
+→ qualified macro views
 ```
 
-Every simulator, model compiler, layout tool, verification tool and characterization tool used in accepted evidence must have immutable version/build identity.
+A passing schematic simulation is not tapeout qualification.
+
+## 6. RF / electromagnetic layer
+
+Distributed passives and RF structures require an EM lane rather than ideal lumped models alone.
+
+The baseline RF capability requires:
+
+- **openEMS** — open full-wave/FDTD electromagnetic analysis.
+- **Palace** — open 3D FEM electromagnetic analysis.
+- **GDSFactory** — deterministic parameterized RF/passive geometry and solver interchange where practical.
+- **scikit-rf** — S-parameter/Touchstone network analysis and post-processing.
+- **ngspice/Xyce** — circuit-level verification of extracted/derived passive models.
+
+Optional meshing/visualization helpers may include Gmsh and ParaView.
+
+RF qualification records geometry/material/PDK revision, ports/reference impedance, solver/version, mesh or discretization settings, sweep/convergence evidence, S-parameters and the compact model used by circuit simulation.
 
 ## 7. Mixed-signal integration contract
 
-Analog/mixed-signal IP integrates with the digital flow through explicit abstract views rather than by flattening transistor-level circuitry into Yosys.
+The mixed-signal lane composes independently qualified digital, analog and RF/EM blocks. It does not flatten transistor-level analog circuitry into Yosys.
 
-Depending on the block, the top level may require:
+Depending on the macro, the top level may require:
 
 - GDS/OASIS physical view
 - LEF abstract
-- SPICE/CDL netlist
-- Verilog or black-box functional model
+- SPICE/CDL source and extracted netlists
+- Verilog black-box/functional model
 - Liberty timing/power model where meaningful
 - SDC/interface constraints
-- extracted parasitics for analog verification
-- pin/power-domain/voltage-domain metadata
-- optional behavioral Verilog-A or real-number model for system simulation
+- Verilog-A or real-number behavioral model
+- pin/supply/voltage-domain metadata
+- placement/routing keepouts
+- substrate/noise sensitivity metadata
+- load, jitter or bandwidth characterization
 
-Mixed-signal assembly must preserve view identity so the same analog revision is used by LVS, digital implementation, top-level integration and verification.
+All views must carry one immutable macro release identity. The baseline open flow uses hierarchical macro verification and behavioral/interface models at system level. Proprietary-style full-chip continuous-time/event-driven AMS co-simulation is not claimed until an open implementation is independently validated.
 
 ## 8. Physical verification and supporting tools
 
-The integrated environment may include and pin, as required:
+The integrated environment shall expose or package, as applicable:
 
 - KLayout
 - Magic
@@ -114,29 +131,31 @@ The integrated environment may include and pin, as required:
 - Xschem
 - ngspice
 - Xyce
-- OpenVAF/OSDI tooling
+- OpenVAF Reloaded/OSDI tooling
 - CACE
+- GDSFactory
+- openEMS
+- Palace
+- scikit-rf
 - Ciel and PDK-management tooling
 
-## 9. PDK requirements
+Every tool used in accepted evidence must have an immutable version/build identity.
 
-The first digital bring-up platform remains SKY130A / `sky130_fd_sc_hd` for infrastructure validation only.
+## 9. PDK requirements and reference platforms
 
-Analog qualification requires PDK collateral beyond a digital standard-cell flow. The selected analog-capable PDK must provide, as applicable:
+### SKY130A
 
-- transistor/passive/HBT compact models and corners
-- simulator initialization/model files
-- Xschem or equivalent symbols/model bindings
-- Magic/KLayout tech files and DRC decks
-- Netgen LVS setup
-- parasitic extraction rules/data
-- device layout generators or parameterized-cell support where available
-- process limits relevant to analog layout/reliability
-- GDS layer mapping
+First digital RTL-to-GDS and analog compatibility platform. It is for infrastructure qualification, not advanced-node PPA claims.
 
-IHP SG13G2 is a strong candidate for the analog/mixed/RF qualification lane because its open PDK documents Xschem, ngspice, Xyce, KLayout, Magic, Netgen, Verilog-A/model support and LibreLane/OpenROAD collateral. SKY130 remains useful for compatibility and existing open analog IP.
+### IHP SG13G2
 
-No restricted PDK/model content is committed unless redistribution is explicitly permitted.
+First RF-capable mixed-signal reference target. It is preferred for the RF lane because the open PDK publishes analog/mixed/RF, Verilog-A, Xschem, ngspice/Xyce, KLayout/Magic/Netgen, GDSFactory, LibreLane/OpenROAD, openEMS and Palace collateral.
+
+### GF180MCU
+
+Secondary future mixed-signal portability target.
+
+For any platform, accepted runs must identify applicable compact models/corners, simulator initialization, symbols/model bindings, layout tech files, DRC/LVS rules, extraction data, PCells/generators, layer mapping, standard-cell timing/LEF/GDS data and macro views. No restricted PDK/model content is committed unless redistribution is explicitly permitted.
 
 ## 10. Reproducibility profiles
 
@@ -146,7 +165,9 @@ Digital profiles remain:
 2. `stock` — pinned upstream Yosys under the comparison packaging path.
 3. `candidate` — `components/yosys`.
 
-Analog runs require an analogous resolved-toolchain manifest including Xschem, simulator, model-compiler, layout, extraction, LVS, characterization, PDK/model and configuration identities.
+Analog and RF runs require analogous resolved-toolchain manifests containing simulator/model compiler/layout/LVS/extraction/characterization/EM/PDK identities and configuration digests.
+
+The Nix shell may expose tools opportunistically from the inherited package set, but a release lane is qualified only when **all required tools for that lane are present and its audit reports no missing required packages**.
 
 ## 11. Validation hierarchy
 
@@ -155,7 +176,7 @@ Fast PR gate:
 - static/configuration checks
 - unit tests
 - Yosys compiler regressions for compiler changes
-- analog netlist/model/configuration smoke tests where applicable
+- analog/RF netlist/model/configuration smoke tests where applicable
 
 Nightly gate:
 
@@ -164,42 +185,44 @@ Nightly gate:
 - analog schematic-to-netlist regression
 - representative ngspice/Xyce simulations
 - CACE spec regressions
+- selected RF solver smoke tests once packaged
 
 Milestone gate:
 
 - full LibreLane/OpenROAD digital implementation
 - digital DRC/LVS/antenna/timing/PPA checks
-- analog DRC/LVS
-- analog pre/post-layout correlation
+- analog DRC/LVS/extraction and post-layout correlation
 - analog spec/yield/corner characterization where models support it
+- RF solver/convergence and compact-model correlation
 - mixed-signal top-level assembly/view consistency
 
-A digital synthesis QoR optimization is not promoted as a major win until it survives downstream physical implementation. An analog block is not promoted as qualified merely because its schematic simulation passes; layout verification and post-layout/spec checks are required.
+A digital synthesis QoR optimization is not promoted until it survives downstream physical implementation. An analog/RF block is not promoted based only on schematic or ideal-model simulation.
 
 ## 12. Incremental modes
 
-`incremental_exact` and `incremental_eco` remain Yosys/digital implementation targets. Analog flows may later gain independent incremental simulation/extraction/characterization caching, but analog cache hits must never substitute for model, layout or corner validity.
+`incremental_exact` and `incremental_eco` remain Yosys/digital implementation targets. Analog/RF flows may later add independent simulation/extraction/EM/characterization caches, but a cache hit never substitutes for model, layout, corner or solver validity.
 
 ## 13. Repository ownership
 
-Top-level `asic-flow` owns toolchain locks, LibreLane integration, analog orchestration adapters, benchmarks, platforms, schemas, scripts, tests, evidence, mixed-signal integration and release qualification.
+Top-level `asic-flow` owns toolchain locks, LibreLane integration, analog/RF orchestration adapters, benchmarks, platforms, schemas, scripts, tests, evidence, mixed-signal integration and release qualification.
 
 `components/yosys` owns native compiler implementation and compiler-local tests.
 
-Fork LibreLane, OpenROAD, OpenSTA, analog tools or PDK tooling only when a concrete missing extension/API requires source changes. Prefer narrow adapters and upstream-compatible interfaces.
+Fork LibreLane, OpenROAD, OpenSTA, analog/RF tools or PDK tooling only when a concrete missing extension/API requires source changes. Prefer narrow adapters and upstream-compatible interfaces.
 
-## 14. Non-goals
+## 14. Non-goals and honest boundaries
 
 Do not:
 
-- force analog circuits through Yosys
+- force analog/RF circuits through Yosys
 - build a new STA engine inside Yosys
 - build placement/routing inside Yosys
-- treat pre-layout analog simulation alone as tapeout qualification
-- claim signoff equivalence to proprietary foundry-qualified flows without evidence
+- treat schematic simulation or ideal passive models as physical qualification
+- claim proprietary AMS/signoff equivalence without evidence
+- claim advanced-node production DFT, UPF, reliability or foundry-qualified RF signoff unless those capabilities are actually added and validated
 - commit restricted PDKs, models, proprietary RTL or credentials
-- mix digital and analog view revisions silently
+- mix digital/analog/RF view revisions silently
 
 ## 15. Acceptance principle
 
-> `asic-flow` may reuse valid work and search better implementations, but every result must preserve correctness, tool/model identity, view consistency and reproducible evidence across the digital and analog lanes.
+> `asic-flow` may reuse valid work and search better implementations, but every result must preserve correctness, tool/model identity, view consistency and reproducible evidence across digital, analog and RF domains.
